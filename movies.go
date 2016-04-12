@@ -2,17 +2,18 @@ package main
 
 import (
 	"github.com/gin-gonic/gin"
+	"gopkg.in/pg.v4"
 )
 
+type application struct {
+	config   config
+	server   *gin.Engine
+	database *pg.DB
+}
+
 func main() {
-	r := gin.New()
-	r.Use(gin.Logger())
-	r.Use(gin.Recovery())
-
-	r.GET("/", root)
-
-	r.Static("/public", "./public")
-	r.StaticFile("/favicon.ico", "./public/favicon.ico")
-
-	r.Run(":8080")
+	app := application{}
+	app.getConfig()
+	app.initDB()
+	app.initServer()
 }
