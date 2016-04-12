@@ -1,0 +1,11 @@
+{
+	"postgresql": {
+		"user": "rssuser",
+		"password": "rsspass",
+		"dbname": "rss",
+		"sslmode": false
+	},
+	"web": {
+		"port": "8080"
+	}
+}
