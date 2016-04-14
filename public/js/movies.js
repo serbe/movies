@@ -2,48 +2,8 @@
 
 // {{define "content"}}
 // <div class="uk-container uk-container-center uk-margin-top uk-margin-large-bottom">
-//     <nav class="uk-navbar uk-margin-bottom" data-uk-sticky>
-//         <a class="uk-navbar-brand" href="/">RSS</a>
-//         <div class="uk-navbar-content uk-width-2-5">
-//             <form class="uk-form uk-margin-remove uk-display-inline-block uk-width-4-5">
-//                 <input class="uk-search-field uk-width-1-1" type="search" placeholder="Поиск по всем полям" onkeyup="filter(this)">
-//             </form>
-//         </div>
-//         <div class="uk-navbar-flip">
-//             <div class="uk-navbar-content">
-//                 <form class="uk-form uk-margin-remove uk-display-inline-block">
-//                     <select class="uk-form-select" data-uk-form-select name="rating" id="rating" onchange="changeRating()">
-//                         <option value="0">Все рейтинги</option>
-//                         <option value="1">&gt;4.7</option>
-//                         <option value="2">&gt;4.5</option>
-//                         <option value="3">&gt;4.3</option>
-//                         <option value="4">&gt;4</option>
-//                         <option value="5">&gt;3</option>
-//                     </select>
-//                 </form>
-//             </div>
-//             <div class="uk-navbar-content">
-//                 <form class="uk-form uk-margin-remove uk-display-inline-block">
-//                     <select class="uk-form-select" data-uk-form-select name="genre" id="genre" onchange="changeGenre()">
-//                         <option value="-1">Все жанры</option>
-//                         {{range $index, $genre := .Genres}}
-//                         <option value="{{$index}}">{{$genre}}</option>
-//                         {{end}}
-//                     </select>
-//                 </form>
-//             </div>
-//             <div class="uk-navbar-content">
-//                 <form class="uk-form uk-margin-remove uk-display-inline-block">
-//                     <select class="uk-form-select" data-uk-form-select name="year" id="year" onchange="changeYear()">
-//                         <option value="-1">Все года</option>
-//                         {{range $index, $year := .Years}}
-//                         <option value="{{$index}}">{{$year}}</option>
-//                         {{end}}
-//                     </select>
-//                 </form>
-//             </div>
-//         </div>
-//     </nav>
+
+
 //     <div class="uk-margin-large-bottom">
 //         {{range $movie := .Movies}}
 //         <div class="movie">
@@ -141,3 +101,231 @@
 // </div>
 // {{end}}
 
+"use strict";
+
+var NewComponent = React.createClass({
+  displayName: "NewComponent",
+
+  render: function render() {
+    return React.createElement(
+      "div",
+      { className: "movie" },
+      React.createElement("hr", { className: "movie-divider uk-margin-small-top uk-margin-small-bottom" }),
+      React.createElement(
+        "h2",
+        { className: "uk-text-large uk-margin-small-top uk-margin-small-bottom" },
+        "movie.Name movie.EngName \"\" / movie.EngName"
+      ),
+      React.createElement(
+        "div",
+        { className: "uk-grid" },
+        React.createElement(
+          "div",
+          { className: "uk-text-justify desc uk-width-7-10" },
+          React.createElement("img", { src: "/public/img/movie.Poster", alt: "movie.Name" }),
+          "movie.Description"
+        ),
+        React.createElement(
+          "div",
+          { className: "addon uk-width-3-10" },
+          React.createElement(
+            "div",
+            { className: "year uk-width-1-1" },
+            "Год: ",
+            React.createElement(
+              "a",
+              { href: "/search?year={{$movie.Year}}" },
+              "movie.Year"
+            )
+          ),
+          React.createElement(
+            "div",
+            { className: "genre uk-width-1-1" },
+            "Жанр: movie.Genre",
+            React.createElement(
+              "a",
+              { href: "/search?genre={{$genre}}" },
+              "genre"
+            )
+          ),
+          React.createElement(
+            "div",
+            { className: "uk-width-1-1" },
+            "Продолжительность: movie.Duration"
+          ),
+          React.createElement(
+            "div",
+            { className: "uk-width-1-1" },
+            "Рейтинг NNM: ",
+            React.createElement(
+              "span",
+              { className: "rating" },
+              "movie.NNM"
+            )
+          ),
+          React.createElement(
+            "div",
+            { className: "uk-width-1-1" },
+            "Рейтинг Кинопоиска: movie.Kinopoisk"
+          ),
+          React.createElement(
+            "div",
+            { className: "uk-width-1-1" },
+            "Рейтинг IMDb: movie.IMDb"
+          )
+        )
+      ),
+      React.createElement("hr", { className: "uk-margin-small-top uk-margin-small-bottom uk-width-1-1" }),
+      React.createElement(
+        "div",
+        { className: "pointer uk-margin-large-left uk-margin-top-remove uk-margin-bottom-remove", onclick: "switching(this)", "data-uk-toggle": "{target:'#i{{$movie.ID}}'}" },
+        "+ Показать дополнительную информацию"
+      ),
+      React.createElement(
+        "div",
+        { id: "i{{$movie.ID}}", className: "uk-hidden" },
+        React.createElement("hr", { className: "uk-width-1-1 uk-margin-small-top" }),
+        React.createElement(
+          "div",
+          { className: "uk-grid uk-margin-top" },
+          React.createElement(
+            "div",
+            { className: "uk-width-1-10" },
+            "Страна:"
+          ),
+          React.createElement(
+            "div",
+            { className: "uk-text-justify uk-width-9-10" },
+            "movie.Country"
+          )
+        ),
+        React.createElement(
+          "div",
+          { className: "uk-grid uk-margin-top-remove" },
+          React.createElement(
+            "div",
+            { className: "uk-width-1-10" },
+            "Режиссер:"
+          ),
+          React.createElement(
+            "div",
+            { className: "uk-text-justify uk-width-9-10" },
+            React.createElement(
+              "a",
+              { href: "/search?director={{$director}}" },
+              "director"
+            )
+          )
+        ),
+        React.createElement(
+          "div",
+          { className: "uk-grid uk-margin-top-remove" },
+          React.createElement(
+            "div",
+            { className: "uk-width-1-10" },
+            "Актеры:"
+          ),
+          React.createElement(
+            "div",
+            { className: "uk-text-justify uk-width-9-10" },
+            React.createElement(
+              "a",
+              { href: "/search?actor={{$actor}}" },
+              "actor"
+            )
+          )
+        ),
+        React.createElement(
+          "div",
+          { className: "uk-grid uk-margin-top-remove" },
+          React.createElement(
+            "div",
+            { className: "uk-align-center uk-width-9-10 uk-margin-top" },
+            React.createElement(
+              "table",
+              { className: "uk-table uk-table-condensed" },
+              React.createElement(
+                "thead",
+                { className: "uk-text-small" },
+                React.createElement(
+                  "tr",
+                  null,
+                  React.createElement(
+                    "th",
+                    { className: "uk-text-center uk-width-1-10" },
+                    "Форум"
+                  ),
+                  React.createElement(
+                    "th",
+                    { className: "uk-text-center uk-width-1-10" },
+                    "Magnet"
+                  ),
+                  React.createElement(
+                    "th",
+                    { className: "uk-text-center uk-width-1-10" },
+                    "Размер"
+                  ),
+                  React.createElement(
+                    "th",
+                    { className: "uk-text-center uk-width-1-10" },
+                    "Сиды"
+                  ),
+                  React.createElement(
+                    "th",
+                    { className: "uk-text-center uk-width-1-10" },
+                    "Пиры"
+                  ),
+                  React.createElement(
+                    "th",
+                    { className: "uk-text-center uk-width-4-10" },
+                    "Перевод"
+                  )
+                )
+              ),
+              React.createElement(
+                "tbody",
+                null,
+                React.createElement(
+                  "tr",
+                  null,
+                  React.createElement(
+                    "td",
+                    { className: "uk-table-middle uk-text-center" },
+                    React.createElement("a", { className: "uk-icon-external-link", href: "http://nnmclub.to/forum/viewtopic.php?t={{$torrent.Href}}" })
+                  ),
+                  React.createElement(
+                    "td",
+                    { className: "uk-table-middle uk-text-center" },
+                    React.createElement("a", { className: "uk-icon-magnet", href: "magnet:?xt=urn:btih:{{$torrent.Magnet}}" })
+                  ),
+                  React.createElement(
+                    "td",
+                    { className: "uk-table-middle uk-text-center" },
+                    "torrent.Size Мб"
+                  ),
+                  React.createElement(
+                    "td",
+                    { className: "uk-table-middle uk-text-center" },
+                    React.createElement("a", { className: "uk-icon-long-arrow-up" }),
+                    " torrent.Seeders"
+                  ),
+                  React.createElement(
+                    "td",
+                    { className: "uk-table-middle uk-text-center" },
+                    React.createElement("a", { className: "uk-icon-long-arrow-down" }),
+                    " torrent.Leechers"
+                  ),
+                  React.createElement(
+                    "td",
+                    { className: "uk-table-middle" },
+                    "torrent.Translation"
+                  )
+                )
+              )
+            )
+          )
+        )
+      )
+    );
+  }
+});
