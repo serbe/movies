@@ -1,0 +1,52 @@
+img {
+    float: left;
+    width: 60px;
+    height: 80px;
+    padding-top: 0px;
+    padding-right: 10px;
+}
+
+.desc {
+    height: 81px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.addon {
+    height: 81px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.movie-divider {
+	border-top-width: 2px;
+    border-color: #505050;
+}
+
+.pointer {
+	cursor: pointer;
+}
+
+.margin-top-remove {
+    margin-top: 0px !important;
+}
+
+.margin-top-bottom-remove {
+    margin-top: 0px !important;
+    margin-bottom: 0px !important;
+}
+
+.top-bottom-remove {
+    margin-top: 0px !important;
+    margin-bottom: 0px !important;
+    padding-top: 0px !important;
+    padding-bottom: 0px !important;
+}
+
+.t-1 {
+    width: 10%;
+}
+
+.t-5 {
+    width: 50%;
+}

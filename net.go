@@ -23,6 +23,9 @@ func (app *application) initServer() {
 
 	r.GET("/", root)
 	r.GET("/react", react)
+	
+	r.GET("/movie", app.getOneMovieJSON)
+	r.GET("/movies", app.getMoviesJSON)
 
 	r.Static("/public", "./public")
 	r.StaticFile("/favicon.ico", "./public/favicon.ico")
