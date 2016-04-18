@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"github.com/gin-gonic/gin"
 )
 
@@ -24,6 +23,5 @@ func (app *application) getOneMovieJSON(c *gin.Context) {
 
 func (app *application) getMoviesJSON(c *gin.Context) {
 	movies := app.getMovies()
-	fmt.Printf("%+v",movies[0])
 	c.JSON(200, movies)
 }
