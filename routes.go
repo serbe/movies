@@ -1,6 +1,8 @@
 package main
 
 import (
+	"strconv"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -17,11 +19,15 @@ func react(c *gin.Context) {
 }
 
 func (app *application) getOneMovieJSON(c *gin.Context) {
-	movie := app.getMovie()
-	c.JSON(200, movie)
+	movies := app.getMovies(1, 0)
+	c.JSON(200, movies)
 }
 
 func (app *application) getMoviesJSON(c *gin.Context) {
-	movies := app.getMovies()
-	c.JSON(200, movies)
+	limitStr, _ := c.GetQuery("limit")
+	offsetStr, _ := c.GetQuery("offset")
+	limit, _ := strconv.Atoi(limitStr)
+	offset, _ := strconv.Atoi(offsetStr)
+	data := app.getMovies(limit, offset)
+	c.JSON(200, data)
 }

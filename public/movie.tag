@@ -93,7 +93,7 @@
     </div>
 
     <script>
-        self.movies = opts.data
+        self.movies = opts.data.Movies
         click (e) {
             alert('Hi!')
        }

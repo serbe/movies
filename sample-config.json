@@ -1,10 +1,10 @@
 {
 	"postgresql": {
-	    "user": "Pquser",
-	    "password": "Pqpassword",
-	    "dbname": "rssdb",
-	    "sslmode": false
-    },
+		"user": "Pquser",
+		"password": "Pqpassword",
+		"dbname": "rssdb",
+		"sslmode": false
+	},
 	"web": {
 		"port": "8080"
 	}
