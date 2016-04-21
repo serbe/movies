@@ -100,21 +100,23 @@
         document.addEventListener(
             'scroll', 
             function(ev) 
-            {
-                if ((window.innerHeight + window.scrollY) >= document.body.scrollHeight)
+            {   
+                if ((window.innerHeight + window.scrollY) >= document.body.scrollHeight && self.mcount > self.moffset)
                 {
                     var url = "http://127.0.0.1:8080/movies?offset=" + self.moffset + "&limit=5";
                     var xmlhttp = new XMLHttpRequest();
                     xmlhttp.onreadystatechange = function() {
                         if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
                             var data = JSON.parse(xmlhttp.responseText);
-                            for (var i = 0; i < data.Movies.length; i++) {
-                                self.movies.push(data.Movies[i])
-                            }
-                            self.mlimit = data.Limit
-                            self.moffset = data.Offset
-                            self.mcount = data.Count
+                            if (data.Movies != null) {
+                                for (var i = 0; i < data.Movies.length; i++) {
+                                    self.movies.push(data.Movies[i])
+                                }
+                                self.mlimit = data.Limit
+                                self.moffset = data.Offset
+                                self.mcount = data.Count
                             riot.update()
+                            }
                         }
                     }
                     xmlhttp.open("GET", url, true);
