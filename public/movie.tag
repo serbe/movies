@@ -93,10 +93,39 @@
     </div>
 
     <script>
+        scrollEnd(e) {
+            console.log(e)
+        }
+        
+        document.addEventListener(
+            'scroll', 
+            function(ev) 
+            {
+                if ((window.innerHeight + window.scrollY) >= document.body.scrollHeight)
+                {
+                    var url = "http://127.0.0.1:8080/movies?offset=" + self.moffset + "&limit=5";
+                    var xmlhttp = new XMLHttpRequest();
+                    xmlhttp.onreadystatechange = function() {
+                        if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
+                            var data = JSON.parse(xmlhttp.responseText);
+                            for (var i = 0; i < data.Movies.length; i++) {
+                                self.movies.push(data.Movies[i])
+                            }
+                            self.mlimit = data.Limit
+                            self.moffset = data.Offset
+                            self.mcount = data.Count
+                            riot.update()
+                        }
+                    }
+                    xmlhttp.open("GET", url, true);
+                    xmlhttp.send();
+                }
+            }.bind(this)
+        )
+        self.mlimit = opts.data.Limit
+        self.moffset = opts.data.Offset
+        self.mcount = opts.data.Count
         self.movies = opts.data.Movies
-        click (e) {
-            alert('Hi!')
-       }
     </script>
 
 </movie>
