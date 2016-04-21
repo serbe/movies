@@ -35,6 +35,7 @@ type Movie struct {
 	Poster      string    `sql:"poster"`
 	PosterURL   string    `sql:"poster_url"`
 	Torrent     []Torrent `sql:"-"`
+	NNM			float64   `sql:"-"`
 }
 
 // Torrent all values
@@ -72,7 +73,7 @@ func (app *application) initDB() {
 
 func (app *application) getMovies(limit int, offset int) Data {
 	var (
-		movies []Movie
+		movies, m []Movie
 		count  int
 		data   Data
 	)
@@ -84,15 +85,24 @@ func (app *application) getMovies(limit int, offset int) Data {
 	if offset > count {
 		offset = count
 	}
-	app.database.Model(&movies).Offset(offset).Limit(limit).Select()
+	app.database.Model(&m).Offset(offset).Limit(limit).Select()
 
-	for i, movie := range movies {
-		movies[i].Torrent = app.getMovieTorrents(movie.ID)
+	for _, movie := range m {
+		torrents := app.getMovieTorrents(movie.ID)
+		if len(torrents) > 0 {
+			var i float64
+			for _, t := range torrents {
+				i = i + t.NNM
+			}
+			movie.Torrent = torrents
+			movie.NNM = round(i/float64(len(torrents)), 1)
+			movies = append(movies, movie)
+		}
 	}
 	data.Movies = movies
 	data.Count = count
-	data.Offset = offset
-	data.Limit = limit
+	data.Limit = len(movies)
+	data.Offset = offset + data.Limit
 	return data
 }
 
