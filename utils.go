@@ -14,7 +14,8 @@ type config struct {
 		Sslmode  bool   `json:"sslmode"`
 	} `json:"postgresql"`
 	Web struct {
-		Port string `json:"port"`
+		ImgDir string `json:"img_dir"`
+		Port   string `json:"port"`
 	} `json:"web"`
 }
 

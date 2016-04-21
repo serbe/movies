@@ -6,6 +6,7 @@
 		"sslmode": false
 	},
 	"web": {
+		"img_dir": "/public/img/",
 		"port": "8080"
 	}
 }

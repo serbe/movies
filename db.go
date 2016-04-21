@@ -9,6 +9,7 @@ type Data struct {
 	Offset int
 	Count  int
 	Limit  int
+	ImgDir string
 	Movies []Movie
 }
 
@@ -103,6 +104,7 @@ func (app *application) getMovies(limit int, offset int) Data {
 	data.Count = count
 	data.Limit = len(movies)
 	data.Offset = offset + data.Limit
+	data.ImgDir = app.config.Web.ImgDir
 	return data
 }
 
