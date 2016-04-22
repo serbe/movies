@@ -15,11 +15,11 @@ type Data struct {
 
 // Movie all values
 type Movie struct {
-	ID          int64     `sql:"id"`
+	ID          int       `sql:"id"`
 	Section     string    `sql:"section"`
 	Name        string    `sql:"name"`
 	EngName     string    `sql:"eng_name"`
-	Year        int64     `sql:"year"`
+	Year        int       `sql:"year"`
 	Genre       []string  `sql:"genre"        pg:",array" `
 	Country     []string  `sql:"country"      pg:",array"`
 	RawCountry  string    `sql:"raw_country"`
@@ -36,13 +36,13 @@ type Movie struct {
 	Poster      string    `sql:"poster"`
 	PosterURL   string    `sql:"poster_url"`
 	Torrent     []Torrent `sql:"-"`
-	NNM			float64   `sql:"-"`
+	NNM         float64   `sql:"-"`
 }
 
 // Torrent all values
 type Torrent struct {
-	ID          int64   `sql:"id"`
-	MovieID     int64   `sql:"movie_id"`
+	ID          int     `sql:"id"`
+	MovieID     int     `sql:"movie_id"`
 	DateCreate  string  `sql:"date_create"`
 	Href        string  `sql:"href"`
 	Torrent     string  `sql:"torrent"`
@@ -52,9 +52,9 @@ type Torrent struct {
 	Quality     string  `sql:"quality"`
 	Resolution  string  `sql:"resolution"`
 	Translation string  `sql:"translation"`
-	Size        int64   `sql:"size"`
-	Seeders     int64   `sql:"seeders"`
-	Leechers    int64   `sql:"leechers"`
+	Size        int     `sql:"size"`
+	Seeders     int     `sql:"seeders"`
+	Leechers    int     `sql:"leechers"`
 	// SubtitlesType string  `sql:"subtitles_type"`
 	// Subtitles     string  `sql:"subtitles"`
 	// Audio1        string  `sql:"audio1"`
@@ -75,8 +75,8 @@ func (app *application) initDB() {
 func (app *application) getMovies(limit int, offset int) Data {
 	var (
 		movies, m []Movie
-		count  int
-		data   Data
+		count     int
+		data      Data
 	)
 
 	count, _ = app.database.Model(&movies).Count()
@@ -108,7 +108,7 @@ func (app *application) getMovies(limit int, offset int) Data {
 	return data
 }
 
-func (app *application) getMovieTorrents(id int64) []Torrent {
+func (app *application) getMovieTorrents(id int) []Torrent {
 	var torrents []Torrent
 	app.database.Model(&torrents).Where("movie_id = ?", id).Select()
 	return torrents
