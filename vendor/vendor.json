@@ -1,0 +1,109 @@
+{
+	"comment": "",
+	"ignore": "test",
+	"package": [
+		{
+			"checksumSHA1": "QaVJPkXsQT5lpXPsvH3MpjUn9/c=",
+			"path": "github.com/gin-gonic/contrib/renders/multitemplate",
+			"revision": "154ef3798e7261b0348e0a49a5a1478afe5e673c",
+			"revisionTime": "2016-04-14T20:52:21Z"
+		},
+		{
+			"checksumSHA1": "NWWmyQnG9Je+xhIBibsmyxbgbbE=",
+			"path": "github.com/gin-gonic/gin",
+			"revision": "542be2fe77724f800fcab7eb6c01a4e597fb8506",
+			"revisionTime": "2016-04-15T11:10:04Z"
+		},
+		{
+			"checksumSHA1": "8aaAVHZ8/CN/+eIvIcPpNWzsRY0=",
+			"path": "github.com/gin-gonic/gin/binding",
+			"revision": "542be2fe77724f800fcab7eb6c01a4e597fb8506",
+			"revisionTime": "2016-04-15T11:10:04Z"
+		},
+		{
+			"checksumSHA1": "XSwwJnhBDPQBlKV/X+F2nGvvptE=",
+			"path": "github.com/gin-gonic/gin/render",
+			"revision": "542be2fe77724f800fcab7eb6c01a4e597fb8506",
+			"revisionTime": "2016-04-15T11:10:04Z"
+		},
+		{
+			"checksumSHA1": "Eci2tUI4Lk6v2UTp7y8WpjkDuZQ=",
+			"path": "github.com/golang/protobuf/proto",
+			"revision": "bf531ff1a004f24ee53329dfd5ce0b41bfdc17df",
+			"revisionTime": "2016-04-20T04:40:00Z"
+		},
+		{
+			"checksumSHA1": "BwhKb5ZaJpGR8xO9JF6WvzJ6uwU=",
+			"path": "github.com/jinzhu/inflection",
+			"revision": "3272df6c21d04180007eb3349844c89a3856bc25",
+			"revisionTime": "2015-10-09T08:41:29Z"
+		},
+		{
+			"checksumSHA1": "8sba7NooZnLTY8zidsbqBeDUjxI=",
+			"path": "github.com/manucorporat/sse",
+			"revision": "ee05b128a739a0fb76c7ebd3ae4810c1de808d6d",
+			"revisionTime": "2016-01-26T18:01:36Z"
+		},
+		{
+			"checksumSHA1": "pancewZW3HwGvpDwfH5Imrbadc4=",
+			"path": "golang.org/x/net/context",
+			"revision": "b797637b7aeeed133049c7281bfa31dcc9ca42d6",
+			"revisionTime": "2016-04-22T22:19:27Z"
+		},
+		{
+			"checksumSHA1": "lzxr2rdWylya6Z5Ft4oA0Fvr4TU=",
+			"path": "gopkg.in/bsm/ratelimit.v1",
+			"revision": "db14e161995a5177acef654cb0dd785e8ee8bc22",
+			"revisionTime": "2016-02-20T15:49:07Z"
+		},
+		{
+			"checksumSHA1": "WgyhR6eOjxb33XfG0kO78Fl2LI4=",
+			"path": "gopkg.in/go-playground/validator.v8",
+			"revision": "014792cf3e266caff1e916876be12282b33059e0",
+			"revisionTime": "2016-02-23T20:26:51Z"
+		},
+		{
+			"checksumSHA1": "ufbPREHFAtyxWOUIG1Cf84AE+aU=",
+			"path": "gopkg.in/pg.v4",
+			"revision": "706e0a5b05cda155e17b37f1a4110b57650fbfee",
+			"revisionTime": "2016-04-19T07:06:53Z"
+		},
+		{
+			"checksumSHA1": "bX+/C5I69Fu3XqVk8PMLgIS+Noo=",
+			"path": "gopkg.in/pg.v4/internal",
+			"revision": "706e0a5b05cda155e17b37f1a4110b57650fbfee",
+			"revisionTime": "2016-04-19T07:06:53Z"
+		},
+		{
+			"checksumSHA1": "wP0uIbuBsSyywgGVG4/YTpRq4u4=",
+			"path": "gopkg.in/pg.v4/internal/parser",
+			"revision": "706e0a5b05cda155e17b37f1a4110b57650fbfee",
+			"revisionTime": "2016-04-19T07:06:53Z"
+		},
+		{
+			"checksumSHA1": "lyUdg8tAFd6rirV1pQHCUfQOJTM=",
+			"path": "gopkg.in/pg.v4/internal/pool",
+			"revision": "706e0a5b05cda155e17b37f1a4110b57650fbfee",
+			"revisionTime": "2016-04-19T07:06:53Z"
+		},
+		{
+			"checksumSHA1": "gLIs9LxbiDENzdu0EbCumBocx0c=",
+			"path": "gopkg.in/pg.v4/orm",
+			"revision": "706e0a5b05cda155e17b37f1a4110b57650fbfee",
+			"revisionTime": "2016-04-19T07:06:53Z"
+		},
+		{
+			"checksumSHA1": "kJvYX3bYhqWQV02nPeA+7586kgg=",
+			"path": "gopkg.in/pg.v4/types",
+			"revision": "706e0a5b05cda155e17b37f1a4110b57650fbfee",
+			"revisionTime": "2016-04-19T07:06:53Z"
+		},
+		{
+			"checksumSHA1": "rO5YE+IAvD4J9Las822E4YND1vc=",
+			"path": "gopkg.in/yaml.v2",
+			"revision": "a83829b6f1293c91addabc89d0571c246397bbf4",
+			"revisionTime": "2016-03-01T20:40:22Z"
+		}
+	],
+	"rootPath": "github.com/serbe/movies"
+}
