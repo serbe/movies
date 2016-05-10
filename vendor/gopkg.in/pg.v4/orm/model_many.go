@@ -6,20 +6,21 @@ import (
 )
 
 type manyModel struct {
-	*SliceModel
+	*sliceTableModel
 	rel *Relation
 
+	buf       []byte
 	dstValues map[string][]reflect.Value
 }
 
-var _ TableModel = (*manyModel)(nil)
+var _ tableModel = (*manyModel)(nil)
 
-func newManyModel(join *Join) *manyModel {
-	joinModel := join.JoinModel.(*SliceModel)
-	dstValues := dstValues(joinModel.Root(), joinModel.Path(), join.BaseModel.Table().PKs)
+func newManyModel(j *join) *manyModel {
+	joinModel := j.JoinModel.(*sliceTableModel)
+	dstValues := dstValues(joinModel.Root(), joinModel.Path(), j.BaseModel.Table().PKs)
 	return &manyModel{
-		SliceModel: joinModel,
-		rel:        join.Rel,
+		sliceTableModel: joinModel,
+		rel:             j.Rel,
 
 		dstValues: dstValues,
 	}
@@ -27,15 +28,15 @@ func newManyModel(join *Join) *manyModel {
 
 func (m *manyModel) NewModel() ColumnScanner {
 	m.strct = reflect.New(m.table.Type).Elem()
-	m.StructModel.NewModel()
+	m.structTableModel.NewModel()
 	return m
 }
 
 func (m *manyModel) AddModel(_ ColumnScanner) error {
-	id := string(modelId(nil, m.strct, m.rel.FKs))
-	dstValues, ok := m.dstValues[id]
+	m.buf = modelId(m.buf[:0], m.strct, m.rel.FKs)
+	dstValues, ok := m.dstValues[string(m.buf)]
 	if !ok {
-		return fmt.Errorf("pg: can't find dst value for model id=%q", id)
+		return fmt.Errorf("pg: can't find dst value for model id=%q", m.buf)
 	}
 	for _, v := range dstValues {
 		v.Set(reflect.Append(v, m.strct))

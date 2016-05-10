@@ -23,19 +23,6 @@ func indirectNew(v reflect.Value) reflect.Value {
 	return v
 }
 
-func sliceNextElem(v reflect.Value) reflect.Value {
-	if v.Type().Elem().Kind() == reflect.Ptr {
-		elem := reflect.New(v.Type().Elem().Elem())
-		v.Set(reflect.Append(v, elem))
-		return elem.Elem()
-	}
-
-	elem := reflect.New(v.Type().Elem()).Elem()
-	v.Set(reflect.Append(v, elem))
-	elem = v.Index(v.Len() - 1)
-	return elem
-}
-
 func columns(table types.Q, prefix string, fields []*Field) []byte {
 	var b []byte
 	for i, f := range fields {
@@ -51,7 +38,7 @@ func columns(table types.Q, prefix string, fields []*Field) []byte {
 	return b
 }
 
-func values(v reflect.Value, path []string, fields []*Field) []byte {
+func values(v reflect.Value, path []int, fields []*Field) []byte {
 	var b []byte
 	walk(v, path, func(v reflect.Value) {
 		b = append(b, '(')
@@ -69,7 +56,7 @@ func values(v reflect.Value, path []string, fields []*Field) []byte {
 	return b
 }
 
-func walk(v reflect.Value, path []string, fn func(reflect.Value)) {
+func walk(v reflect.Value, path []int, fn func(reflect.Value)) {
 	v = reflect.Indirect(v)
 	if v.Kind() == reflect.Slice {
 		walkSlice(v, path, fn)
@@ -78,23 +65,25 @@ func walk(v reflect.Value, path []string, fn func(reflect.Value)) {
 	}
 }
 
-func walkSlice(slice reflect.Value, path []string, fn func(reflect.Value)) {
+func walkSlice(slice reflect.Value, path []int, fn func(reflect.Value)) {
 	for i := 0; i < slice.Len(); i++ {
 		visitStruct(slice.Index(i), path, fn)
 	}
 }
 
-func visitStruct(strct reflect.Value, path []string, fn func(reflect.Value)) {
+func visitStruct(strct reflect.Value, path []int, fn func(reflect.Value)) {
 	if len(path) > 0 {
-		strct = strct.FieldByName(path[0])
+		strct = strct.Field(path[0])
 		walk(strct, path[1:], fn)
 	} else {
 		fn(strct)
 	}
 }
 
-func appendFieldValue(b []byte, v reflect.Value, fields []*Field) []byte {
+func appendColumnAndValue(b []byte, v reflect.Value, table *Table, fields []*Field) []byte {
 	for i, f := range fields {
+		b = append(b, table.Alias...)
+		b = append(b, '.')
 		b = append(b, f.ColName...)
 		b = append(b, " = "...)
 		b = f.AppendValue(b, v, 1)
@@ -106,32 +95,27 @@ func appendFieldValue(b []byte, v reflect.Value, fields []*Field) []byte {
 }
 
 func modelId(b []byte, v reflect.Value, fields []*Field) []byte {
-	for i, f := range fields {
+	for _, f := range fields {
 		b = f.AppendValue(b, v, 0)
-		if i != len(fields)-1 {
-			b = append(b, ',')
-		}
+		b = append(b, ',')
 	}
 	return b
 }
 
 func modelIdMap(b []byte, m map[string]string, prefix string, fields []*Field) []byte {
-	for i, f := range fields {
+	for _, f := range fields {
 		b = append(b, m[prefix+f.SQLName]...)
-		if i != len(fields)-1 {
-			b = append(b, ',')
-		}
+		b = append(b, ',')
 	}
 	return b
 }
 
-func dstValues(root reflect.Value, path []string, fields []*Field) map[string][]reflect.Value {
+func dstValues(root reflect.Value, path []int, fields []*Field) map[string][]reflect.Value {
 	mp := make(map[string][]reflect.Value)
-	b := make([]byte, 16)
+	var id []byte
 	walk(root, path[:len(path)-1], func(v reflect.Value) {
-		b = b[:0]
-		id := string(modelId(b, v, fields))
-		mp[id] = append(mp[id], v.FieldByName(path[len(path)-1]))
+		id = modelId(id[:0], v, fields)
+		mp[string(id)] = append(mp[string(id)], v.Field(path[len(path)-1]))
 	})
 	return mp
 }
@@ -141,8 +125,4 @@ func appendSep(b []byte, sep string) []byte {
 		b = append(b, sep...)
 	}
 	return b
-}
-
-func col(s string) types.Q {
-	return types.Q(types.AppendField(nil, s, 1))
 }

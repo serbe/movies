@@ -3,7 +3,7 @@ package orm
 import (
 	"errors"
 	"fmt"
-	"reflect"
+	"sync"
 
 	"gopkg.in/pg.v4/internal"
 	"gopkg.in/pg.v4/types"
@@ -11,15 +11,19 @@ import (
 
 type Query struct {
 	db    dber
-	model TableModel
+	model tableModel
 	err   error
 
 	tableName  types.Q
+	tableAlias string
+
 	tables     []byte
 	fields     []string
 	columns    []byte
+	set        []byte
 	where      []byte
 	join       []byte
+	group      []byte
 	order      []byte
 	onConflict []byte
 	returning  []byte
@@ -28,7 +32,7 @@ type Query struct {
 }
 
 func NewQuery(db dber, v interface{}) *Query {
-	model, err := NewTableModel(v)
+	model, err := newTableModel(v)
 	q := Query{
 		db:    db,
 		model: model,
@@ -36,19 +40,24 @@ func NewQuery(db dber, v interface{}) *Query {
 	}
 	if err == nil {
 		q.tableName = q.format(nil, string(q.model.Table().Name))
-
-		q.tables = appendSep(q.tables, ", ")
-		q.tables = append(q.tables, q.tableName...)
-		q.tables = append(q.tables, " AS "...)
-		q.tables = types.AppendField(q.tables, q.model.Table().ModelName, 1)
 	}
 	return &q
+}
+
+func (q *Query) copy() *Query {
+	cp := *q
+	return &cp
 }
 
 func (q *Query) setErr(err error) {
 	if q.err == nil {
 		q.err = err
 	}
+}
+
+func (q *Query) Alias(alias string) *Query {
+	q.tableAlias = alias
+	return q
 }
 
 func (q *Query) Table(names ...string) *Query {
@@ -58,29 +67,29 @@ func (q *Query) Table(names ...string) *Query {
 	return q
 }
 
-func (q *Query) Column(columns ...interface{}) *Query {
+func (q *Query) Column(columns ...string) *Query {
 loop:
 	for _, column := range columns {
-		switch column := column.(type) {
-		case string:
-			if j := q.model.Join(column); j != nil {
-				continue loop
-			}
-
-			q.fields = append(q.fields, column)
-			q.columns = appendSep(q.columns, ", ")
-			q.columns = types.AppendField(q.columns, column, 1)
-		case types.ValueAppender:
-			var err error
-			q.columns = appendSep(q.columns, ", ")
-			q.columns, err = column.AppendValue(q.columns, 1)
-			if err != nil {
-				q.setErr(err)
-			}
-		default:
-			q.setErr(fmt.Errorf("unsupported column type: %T", column))
+		if j := q.model.Join(column); j != nil {
+			continue loop
 		}
+
+		q.fields = append(q.fields, column)
+		q.columns = appendSep(q.columns, ", ")
+		q.columns = types.AppendField(q.columns, column, 1)
 	}
+	return q
+}
+
+func (q *Query) ColumnExpr(expr string, params ...interface{}) *Query {
+	q.columns = appendSep(q.columns, ", ")
+	q.columns = q.format(q.columns, expr, params...)
+	return q
+}
+
+func (q *Query) Set(set string, params ...interface{}) *Query {
+	q.set = appendSep(q.set, ", ")
+	q.set = q.format(q.set, set, params...)
 	return q
 }
 
@@ -95,6 +104,12 @@ func (q *Query) Where(where string, params ...interface{}) *Query {
 func (q *Query) Join(join string, params ...interface{}) *Query {
 	q.join = appendSep(q.join, " ")
 	q.join = q.format(q.join, join, params...)
+	return q
+}
+
+func (q *Query) Group(group string, params ...interface{}) *Query {
+	q.group = appendSep(q.group, ", ")
+	q.group = q.format(q.group, group, params...)
 	return q
 }
 
@@ -139,12 +154,13 @@ func (q *Query) Returning(columns ...interface{}) *Query {
 	return q
 }
 
+// Count returns number of rows matching the query using count aggregate function.
 func (q *Query) Count() (int, error) {
 	if q.err != nil {
 		return 0, q.err
 	}
 
-	q.joinHasOne()
+	q = q.copy()
 	q.columns = types.Q("COUNT(*)")
 	q.order = nil
 	q.limit = 0
@@ -158,35 +174,71 @@ func (q *Query) Count() (int, error) {
 	return count, err
 }
 
+// First selects the first row.
 func (q *Query) First() error {
-	b := columns(col(q.model.Table().ModelName), "", q.model.Table().PKs)
+	b := columns(q.model.Table().Alias, "", q.model.Table().PKs)
 	return q.Order(string(b)).Limit(1).Select()
 }
 
+// Last selects the last row.
 func (q *Query) Last() error {
-	b := columns(col(q.model.Table().ModelName), "", q.model.Table().PKs)
+	b := columns(q.model.Table().Alias, "", q.model.Table().PKs)
 	b = append(b, " DESC"...)
 	return q.Order(string(b)).Limit(1).Select()
 }
 
-// Select selects the model from database.
+// Select selects the model.
 func (q *Query) Select(values ...interface{}) error {
 	q.joinHasOne()
 	sel := selectQuery{q}
 
+	var model Model
 	var err error
 	if len(values) > 0 {
-		_, err = q.db.QueryOne(Scan(values...), sel, q.model)
-	} else if q.model.Kind() == reflect.Slice {
-		_, err = q.db.Query(q.model, sel, q.model)
+		model, err = NewModel(values...)
+		if err != nil {
+			return err
+		}
 	} else {
-		_, err = q.db.QueryOne(q.model, sel, q.model)
+		model = q.model
+	}
+
+	if m, ok := model.(useQueryOne); ok && m.useQueryOne() {
+		_, err = q.db.QueryOne(model, sel, q.model)
+	} else {
+		_, err = q.db.Query(model, sel, q.model)
 	}
 	if err != nil {
 		return err
 	}
 
 	return selectJoins(q.db, q.model.GetJoins())
+}
+
+// SelectAndCount runs Select and Count in two separate goroutines,
+// waits for them to finish and returns the result.
+func (q *Query) SelectAndCount(values ...interface{}) (count int, err error) {
+	var wg sync.WaitGroup
+	wg.Add(2)
+
+	go func() {
+		defer wg.Done()
+		if e := q.Select(values...); e != nil {
+			err = e
+		}
+	}()
+
+	go func() {
+		defer wg.Done()
+		var e error
+		count, e = q.Count()
+		if e != nil {
+			err = e
+		}
+	}()
+
+	wg.Wait()
+	return count, err
 }
 
 func (q *Query) joinHasOne() {
@@ -199,7 +251,7 @@ func (q *Query) joinHasOne() {
 	}
 }
 
-func selectJoins(db dber, joins []Join) error {
+func selectJoins(db dber, joins []join) error {
 	var err error
 	for i := range joins {
 		j := &joins[i]
@@ -215,7 +267,7 @@ func selectJoins(db dber, joins []Join) error {
 	return nil
 }
 
-// Create inserts the model into database.
+// Create inserts the model.
 func (q *Query) Create(values ...interface{}) (*types.Result, error) {
 	if q.err != nil {
 		return nil, q.err
@@ -231,7 +283,7 @@ func (q *Query) Create(values ...interface{}) (*types.Result, error) {
 	return q.db.Query(model, insertQuery{Query: q}, q.model)
 }
 
-// SelectOrCreate selects the model from database creating one if necessary.
+// SelectOrCreate selects the model creating one if it does not exist.
 func (q *Query) SelectOrCreate(values ...interface{}) (created bool, err error) {
 	if q.err != nil {
 		return false, q.err
@@ -267,35 +319,90 @@ func (q *Query) SelectOrCreate(values ...interface{}) (created bool, err error) 
 	return false, errors.New("pg: GetOrCreate does not make progress after 10 iterations")
 }
 
-// Update updates the model in database.
+// Update updates the model.
 func (q *Query) Update() (*types.Result, error) {
 	if q.err != nil {
 		return nil, q.err
 	}
-	return q.db.Query(q.model, updateModel{q}, q.model)
+	return q.db.Query(q.model, updateQuery{q}, q.model)
 }
 
-// Update updates the model using provided values.
-func (q *Query) UpdateValues(values map[string]interface{}) (*types.Result, error) {
-	if q.err != nil {
-		return nil, q.err
-	}
-	upd := updateQuery{
-		Query: q,
-		data:  values,
-	}
-	return q.db.Query(q.model, upd, q.model)
-}
-
-// Delete deletes the model from database.
+// Delete deletes the model.
 func (q *Query) Delete() (*types.Result, error) {
 	if q.err != nil {
 		return nil, q.err
 	}
-	return q.db.Exec(deleteModel{q}, q.model)
+	return q.db.Exec(deleteQuery{q}, q.model)
 }
 
 func (q *Query) format(dst []byte, query string, params ...interface{}) []byte {
 	params = append(params, q.model)
 	return q.db.FormatQuery(dst, query, params...)
+}
+
+func (q *Query) appendTableNameWithAlias(b []byte) []byte {
+	b = append(b, q.tableName...)
+	b = append(b, " AS "...)
+	if q.tableAlias != "" {
+		b = types.AppendField(b, q.tableAlias, 1)
+	} else {
+		b = append(b, q.model.Table().Alias...)
+	}
+	return b
+}
+
+func (q *Query) appendSet(b []byte) ([]byte, error) {
+	b = append(b, " SET "...)
+	if len(q.set) > 0 {
+		b = append(b, q.set...)
+	} else if len(q.fields) > 0 {
+		table := q.model.Table()
+		strct := q.model.Value()
+		for i, fieldName := range q.fields {
+			field, err := table.GetField(fieldName)
+			if err != nil {
+				return nil, err
+			}
+
+			b = append(b, field.ColName...)
+			b = append(b, " = "...)
+			b = field.AppendValue(b, strct, 1)
+			if i != len(q.fields)-1 {
+				b = append(b, ", "...)
+			}
+		}
+	} else {
+		table := q.model.Table()
+		strct := q.model.Value()
+
+		start := len(b)
+		for _, field := range table.Fields {
+			if field.Has(PrimaryKeyFlag) {
+				continue
+			}
+
+			b = append(b, field.ColName...)
+			b = append(b, " = "...)
+			b = field.AppendValue(b, strct, 1)
+			b = append(b, ", "...)
+		}
+		if len(b) > start {
+			b = b[:len(b)-2]
+		}
+	}
+	return b, nil
+}
+
+func (q *Query) appendWhere(b []byte) ([]byte, error) {
+	b = append(b, " WHERE "...)
+	if len(q.where) > 0 {
+		b = append(b, q.where...)
+	} else {
+		table := q.model.Table()
+		if err := table.checkPKs(); err != nil {
+			return nil, err
+		}
+		b = appendColumnAndValue(b, q.model.Value(), table, table.PKs)
+	}
+	return b, nil
 }

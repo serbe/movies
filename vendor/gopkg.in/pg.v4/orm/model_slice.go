@@ -1,32 +1,27 @@
 package orm
 
-import "reflect"
+import (
+	"reflect"
 
-type SliceModel struct {
-	StructModel
+	"gopkg.in/pg.v4/internal"
+)
+
+type sliceModel struct {
 	slice reflect.Value
+	scan  func(reflect.Value, []byte) error
 }
 
-var _ TableModel = (*SliceModel)(nil)
+var _ Model = (*sliceModel)(nil)
 
-func (m *SliceModel) Join(name string) *Join {
-	return join(&m.StructModel, m.Value(), name)
-}
-
-func (m *SliceModel) Kind() reflect.Kind {
-	return reflect.Slice
-}
-
-func (m *SliceModel) Bind(bind reflect.Value) {
-	m.slice = bind.FieldByName(m.path[len(m.path)-1])
-}
-
-func (m *SliceModel) Value() reflect.Value {
-	return m.slice
-}
-
-func (m *SliceModel) NewModel() ColumnScanner {
-	m.strct = sliceNextElem(m.slice)
-	m.StructModel.NewModel()
+func (m *sliceModel) NewModel() ColumnScanner {
 	return m
+}
+
+func (sliceModel) AddModel(_ ColumnScanner) error {
+	return nil
+}
+
+func (m *sliceModel) ScanColumn(colIdx int, _ string, b []byte) error {
+	v := internal.SliceNextElem(m.slice)
+	return m.scan(v, b)
 }

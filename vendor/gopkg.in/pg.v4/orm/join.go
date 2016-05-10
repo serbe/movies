@@ -2,16 +2,16 @@ package orm
 
 import "gopkg.in/pg.v4/types"
 
-type Join struct {
-	BaseModel TableModel
-	JoinModel TableModel
+type join struct {
+	BaseModel tableModel
+	JoinModel tableModel
 	Rel       *Relation
 
 	SelectAll bool
 	Columns   []string
 }
 
-func (j *Join) AppendColumns(dst []byte) []byte {
+func (j *join) AppendColumns(dst []byte) []byte {
 	alias := make([]byte, 0, 3*len(j.Rel.Field.SQLName))
 	alias = append(alias, j.Rel.Field.SQLName...)
 	alias = append(alias, "__"...)
@@ -39,7 +39,7 @@ func (j *Join) AppendColumns(dst []byte) []byte {
 	return dst
 }
 
-func (j *Join) JoinOne(q *Query) {
+func (j *join) JoinOne(q *Query) {
 	var cond types.Q
 	for i, pk := range j.Rel.Join.PKs {
 		cond = q.format(
@@ -47,7 +47,7 @@ func (j *Join) JoinOne(q *Query) {
 			`?.? = ?.?`,
 			j.Rel.Field.ColName,
 			pk.ColName,
-			types.Q(j.BaseModel.Table().ModelName),
+			j.BaseModel.Table().Alias,
 			types.F(j.Rel.Field.SQLName+"_"+pk.SQLName),
 		)
 		if i != len(j.Rel.Join.PKs)-1 {
@@ -62,7 +62,7 @@ func (j *Join) JoinOne(q *Query) {
 	q.columns = j.AppendColumns(q.columns)
 }
 
-func (j *Join) Select(db dber) error {
+func (j *join) Select(db dber) error {
 	if j.Rel.One {
 		panic("not reached")
 	} else if len(j.Rel.M2MTableName) > 0 {
@@ -72,7 +72,7 @@ func (j *Join) Select(db dber) error {
 	}
 }
 
-func (j *Join) selectMany(db dber) error {
+func (j *join) selectMany(db dber) error {
 	root := j.JoinModel.Root()
 	path := j.JoinModel.Path()
 	path = path[:len(path)-1]
@@ -81,10 +81,10 @@ func (j *Join) selectMany(db dber) error {
 	q := NewQuery(db, manyModel)
 
 	q.columns = appendSep(q.columns, ", ")
-	q.columns = types.AppendField(q.columns, j.JoinModel.Table().ModelName, 1)
+	q.columns = append(q.columns, j.JoinModel.Table().Alias...)
 	q.columns = append(q.columns, ".*"...)
 
-	cols := columns(col(j.JoinModel.Table().ModelName), "", j.Rel.FKs)
+	cols := columns(j.JoinModel.Table().Alias, "", j.Rel.FKs)
 	vals := values(root, path, j.BaseModel.Table().PKs)
 	q.Where(`(?) IN (?)`, types.Q(cols), types.Q(vals))
 
@@ -100,7 +100,7 @@ func (j *Join) selectMany(db dber) error {
 	return nil
 }
 
-func (j *Join) selectM2M(db dber) error {
+func (j *join) selectM2M(db dber) error {
 	path := j.JoinModel.Path()
 	path = path[:len(path)-1]
 
@@ -120,7 +120,7 @@ func (j *Join) selectM2M(db dber) error {
 	for _, pk := range joinTable.PKs {
 		q.Where(
 			"?.? = ?.?",
-			types.F(joinTable.ModelName), pk.ColName,
+			joinTable.Alias, pk.ColName,
 			j.Rel.M2MTableName, types.F(j.Rel.JoinPrefix+pk.SQLName),
 		)
 	}

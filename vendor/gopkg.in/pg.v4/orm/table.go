@@ -5,13 +5,14 @@ import (
 	"reflect"
 	"strings"
 
-	"gopkg.in/pg.v4/types"
-
 	"github.com/jinzhu/inflection"
+
+	"gopkg.in/pg.v4/types"
 )
 
 type Table struct {
-	Name      types.Q // escaped table name
+	Name      types.Q
+	Alias     types.Q
 	ModelName string
 	Type      reflect.Type
 
@@ -21,6 +22,13 @@ type Table struct {
 
 	Methods   map[string]*Method
 	Relations map[string]*Relation
+}
+
+func (t *Table) checkPKs() error {
+	if len(t.PKs) == 0 {
+		return fmt.Errorf("model %q does not have primary keys", t.ModelName)
+	}
+	return nil
 }
 
 func (t *Table) AddField(field *Field) {
@@ -54,10 +62,11 @@ func newTable(typ reflect.Type) *Table {
 		return table
 	}
 
-	tableName := Underscore(typ.Name())
+	modelName := Underscore(typ.Name())
 	table = &Table{
-		Name:      types.AppendField(nil, inflection.Plural(tableName), 1),
-		ModelName: tableName,
+		Name:      types.AppendField(nil, inflection.Plural(modelName), 1),
+		Alias:     types.AppendField(nil, modelName, 1),
+		ModelName: modelName,
 		Type:      typ,
 		Fields:    make([]*Field, 0, typ.NumField()),
 		FieldsMap: make(map[string]*Field, typ.NumField()),
@@ -86,7 +95,7 @@ func newTable(typ reflect.Type) *Table {
 			continue
 		}
 
-		field := table.newField(typ, f)
+		field := table.newField(f)
 		if field != nil {
 			table.AddField(field)
 		}
@@ -115,10 +124,6 @@ func newTable(typ reflect.Type) *Table {
 			appender: types.Appender(retType),
 		}
 
-		if retType == queryType || retType == fieldType {
-			method.flags |= FormatFlag
-		}
-
 		table.Methods[m.Name] = &method
 	}
 
@@ -128,11 +133,30 @@ func newTable(typ reflect.Type) *Table {
 	return table
 }
 
-func (t *Table) newField(typ reflect.Type, f reflect.StructField) *Field {
+func (t *Table) getField(name string) *Field {
+	for _, f := range t.Fields {
+		if f.GoName == name {
+			return f
+		}
+	}
+
+	f, ok := t.Type.FieldByName(name)
+	if !ok {
+		return nil
+	}
+	return t.newField(f)
+}
+
+func (t *Table) newField(f reflect.StructField) *Field {
 	sqlName, sqlOpt := parseTag(f.Tag.Get("sql"))
 
 	if f.Name == "TableName" {
-		t.Name = types.AppendField(nil, sqlName, 1)
+		if sqlName != "" {
+			t.Name = types.AppendField(nil, sqlName, 1)
+		}
+		if v, ok := sqlOpt.Get("alias:"); ok {
+			t.Alias = types.AppendField(nil, v, 1)
+		}
 		return nil
 	}
 
@@ -149,13 +173,12 @@ func (t *Table) newField(typ reflect.Type, f reflect.StructField) *Field {
 
 	var appender types.AppenderFunc
 	var scanner types.ScannerFunc
-	fieldType := indirectType(f.Type)
 	if _, ok := pgOpt.Get("array"); ok {
-		appender = types.ArrayAppender(fieldType)
-		scanner = types.ArrayScanner(fieldType)
+		appender = types.ArrayAppender(f.Type)
+		scanner = types.ArrayScanner(f.Type)
 	} else {
-		appender = types.Appender(fieldType)
-		scanner = types.Scanner(fieldType)
+		appender = types.Appender(f.Type)
+		scanner = types.Scanner(f.Type)
 	}
 
 	field := Field{
@@ -168,7 +191,7 @@ func (t *Table) newField(typ reflect.Type, f reflect.StructField) *Field {
 		append: appender,
 		scan:   scanner,
 
-		isEmpty: isEmptier(fieldType),
+		isEmpty: isEmptier(f.Type),
 	}
 
 	if skip {
@@ -189,46 +212,47 @@ func (t *Table) newField(typ reflect.Type, f reflect.StructField) *Field {
 		field.flags |= ForeignKeyFlag
 	}
 
-	if fieldType == queryType || fieldType == fieldType {
-		field.flags |= FormatFlag
+	if types.IsSQLScanner(f.Type) {
+		return &field
 	}
 
+	fieldType := indirectType(f.Type)
 	switch fieldType.Kind() {
 	case reflect.Slice:
 		if fieldType.Elem().Kind() == reflect.Struct {
 			joinTable := newTable(fieldType.Elem())
 
-			basePrefix := t.ModelName + "_"
+			basePrefix := t.Type.Name()
 			if s, _ := pgOpt.Get("fk:"); s != "" {
-				basePrefix = Underscore(s) + "_"
-			}
-			joinPrefix := joinTable.ModelName + "_"
-			if s, _ := pgOpt.Get("joinFK:"); s != "" {
-				joinPrefix = Underscore(s) + "_"
+				basePrefix = s
 			}
 
 			if m2mTable, _ := pgOpt.Get("many2many:"); m2mTable != "" {
+				joinPrefix := joinTable.Type.Name()
+				if s, _ := pgOpt.Get("joinFK:"); s != "" {
+					joinPrefix = s
+				}
+
 				t.addRelation(&Relation{
 					Field:        &field,
 					Join:         joinTable,
 					M2MTableName: types.AppendField(nil, m2mTable, 1),
-					BasePrefix:   basePrefix,
-					JoinPrefix:   joinPrefix,
+					BasePrefix:   Underscore(basePrefix + "_"),
+					JoinPrefix:   Underscore(joinPrefix + "_"),
 				})
 				return nil
 			}
 
 			var polymorphic bool
 			if s, _ := pgOpt.Get("polymorphic:"); s != "" {
+				basePrefix = s
 				polymorphic = true
-				basePrefix = Underscore(s) + "_"
 			}
 
 			var fks []*Field
 			for _, pk := range t.PKs {
-				fkName := basePrefix + pk.SQLName
-				fk, ok := joinTable.FieldsMap[fkName]
-				if ok {
+				fkName := basePrefix + pk.GoName
+				if fk := joinTable.getField(fkName); fk != nil {
 					fks = append(fks, fk)
 				}
 			}
@@ -239,7 +263,7 @@ func (t *Table) newField(typ reflect.Type, f reflect.StructField) *Field {
 					Field:       &field,
 					FKs:         fks,
 					Join:        joinTable,
-					BasePrefix:  basePrefix,
+					BasePrefix:  Underscore(basePrefix + "_"),
 				})
 				return nil
 			}
@@ -250,7 +274,7 @@ func (t *Table) newField(typ reflect.Type, f reflect.StructField) *Field {
 			break
 		}
 
-		for _, ff := range joinTable.Fields {
+		for _, ff := range joinTable.FieldsMap {
 			ff = ff.Copy()
 			ff.SQLName = field.SQLName + "__" + ff.SQLName
 			ff.ColName = types.AppendField(nil, ff.SQLName, 1)
@@ -260,9 +284,8 @@ func (t *Table) newField(typ reflect.Type, f reflect.StructField) *Field {
 
 		var fks []*Field
 		for _, pk := range joinTable.PKs {
-			fkName := field.SQLName + "_" + pk.SQLName
-			fk, ok := t.FieldsMap[fkName]
-			if ok {
+			fkName := field.GoName + pk.GoName
+			if fk := t.getField(fkName); fk != nil {
 				fks = append(fks, fk)
 			}
 		}

@@ -4,6 +4,7 @@ import (
 	"io"
 	"time"
 
+	"gopkg.in/pg.v4/internal"
 	"gopkg.in/pg.v4/internal/pool"
 	"gopkg.in/pg.v4/orm"
 	"gopkg.in/pg.v4/types"
@@ -96,6 +97,13 @@ func (db *DB) freeConn(cn *pool.Conn, err error) error {
 // It is rare to Close a DB, as the DB handle is meant to be
 // long-lived and shared between many goroutines.
 func (db *DB) Close() error {
+	st := db.pool.Stats()
+	if st.TotalConns != st.FreeConns {
+		internal.Logf(
+			"connection leaking detected: total_conns=%d free_conns=%d",
+			st.TotalConns, st.FreeConns,
+		)
+	}
 	return db.pool.Close()
 }
 
@@ -190,12 +198,12 @@ func (db *DB) Listen(channels ...string) (*Listener, error) {
 }
 
 // CopyFrom copies data from reader to a table.
-func (db *DB) CopyFrom(r io.Reader, query interface{}, params ...interface{}) (*types.Result, error) {
+func (db *DB) CopyFrom(reader io.Reader, query interface{}, params ...interface{}) (*types.Result, error) {
 	cn, err := db.conn()
 	if err != nil {
 		return nil, err
 	}
-	res, err := copyFrom(cn, r, query, params...)
+	res, err := copyFrom(cn, reader, query, params...)
 	if err != nil {
 		db.freeConn(cn, err)
 		return nil, err
@@ -205,7 +213,7 @@ func (db *DB) CopyFrom(r io.Reader, query interface{}, params ...interface{}) (*
 }
 
 // CopyTo copies data from a table to writer.
-func (db *DB) CopyTo(w io.Writer, query interface{}, params ...interface{}) (*types.Result, error) {
+func (db *DB) CopyTo(writer io.Writer, query interface{}, params ...interface{}) (*types.Result, error) {
 	cn, err := db.conn()
 	if err != nil {
 		return nil, err
@@ -226,12 +234,13 @@ func (db *DB) CopyTo(w io.Writer, query interface{}, params ...interface{}) (*ty
 		return nil, err
 	}
 
-	res, err := readCopyData(cn, w)
+	res, err := readCopyData(cn, writer)
 	if err != nil {
 		db.freeConn(cn, err)
 		return nil, err
 	}
 
+	db.pool.Put(cn)
 	return res, nil
 }
 
@@ -240,17 +249,22 @@ func (db *DB) Model(model interface{}) *orm.Query {
 	return orm.NewQuery(db, model)
 }
 
-// Create inserts the model into database.
+// Select selects the model by primary key.
+func (db *DB) Select(model interface{}) error {
+	return orm.Select(db, model)
+}
+
+// Create inserts the model updating primary keys if they are empty.
 func (db *DB) Create(model interface{}) error {
 	return orm.Create(db, model)
 }
 
-// Update updates the model in database.
+// Update updates the model by primary key.
 func (db *DB) Update(model interface{}) error {
 	return orm.Update(db, model)
 }
 
-// Delete deletes the model from database.
+// Delete deletes the model by primary key.
 func (db *DB) Delete(model interface{}) error {
 	return orm.Delete(db, model)
 }
