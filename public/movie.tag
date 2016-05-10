@@ -103,7 +103,7 @@
             {   
                 if ((window.innerHeight + window.scrollY) >= document.body.scrollHeight && self.mcount > self.moffset)
                 {
-                    var url = "http://127.0.0.1:8080/movies?offset=" + self.moffset + "&limit=5";
+                    var url = "/movies?offset=" + self.moffset + "&limit=5";
                     var xmlhttp = new XMLHttpRequest();
                     xmlhttp.onreadystatechange = function() {
                         if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
