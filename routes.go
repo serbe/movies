@@ -3,7 +3,8 @@ package main
 import (
 	"strconv"
 
-	"github.com/gin-gonic/gin"
+	"github.com/labstack/echo"
+	"github.com/labstack/echo/engine/standard"
 )
 
 func root(c *gin.Context) {
