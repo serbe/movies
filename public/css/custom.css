@@ -36,11 +36,8 @@ img {
     margin-bottom: 0px !important;
 }
 
-.top-bottom-remove {
-    margin-top: 0px !important;
-    margin-bottom: 0px !important;
-    padding-top: 0px !important;
-    padding-bottom: 0px !important;
+.small-bottom-padding {
+    padding-bottom: 4px !important;
 }
 
 .t-1 {
@@ -49,4 +46,9 @@ img {
 
 .t-5 {
     width: 50%;
+}
+
+.small-top-bottom-padding > .column {
+    padding-top: 4px !important;
+    padding-bottom: 4px !important;
 }
