@@ -1,8 +1,7 @@
 package main
 
 import (
-	"github.com/labstack/echo"
-	// "github.com/labstack/echo/engine/standard"
+	"github.com/gin-gonic/gin"
 	"gopkg.in/pg.v4"
 )
 

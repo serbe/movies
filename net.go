@@ -1,8 +1,8 @@
 package main
 
 import (
-	"github.com/labstack/echo"
-	"github.com/labstack/echo/engine/standard"
+	"github.com/gin-gonic/contrib/renders/multitemplate"
+	"github.com/gin-gonic/gin"
 )
 
 func initRender() multitemplate.Render {
@@ -23,7 +23,7 @@ func (app *application) initServer() {
 
 	r.GET("/", root)
 	r.GET("/react", react)
-	
+
 	r.GET("/movie", app.getOneMovieJSON)
 	r.GET("/movies", app.getMoviesJSON)
 
