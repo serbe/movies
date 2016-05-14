@@ -1,91 +1,88 @@
 <movie>
-    <div each="{movie in movies}" class="movie box" no-reorder>
-        <h2 class="title">{movie.Name}</h2>
-        <div class="columns is-gapless">
-            <div class="uk-text-justify desc column is-9"><img src="/public/img/{movie.Poster}" alt="{movie.Name}">{movie.Description}</div>
-            <div class="addon column is-3">
-                <div class="year">Год: <a href="/search?year={movie.Year}">{movie.Year}</a></div>
+    <div each="{movie in movies}" class="movie border my1" no-reorder>
+        <div class="h2 m1">{movie.Name} (<a href="/search?year={movie.Year}">{movie.Year}</a>)</div>
+        <div class="clearfix">
+            <div class="justify desc sm-col sm-col-8 px1">
+                <img src="/public/img/{movie.Poster}" alt="{movie.Name}">{movie.Description}
+            </div>
+            <div class="addon sm-col sm-col-4 px1">
                 <div class="genre">Жанр:
                     <span each="{genre, i in movie.Genre}">
                         <a href="/search?genre={genre}">{genre}</a><span if={i < movie.Genre.length-1}>{', '}</span>
                     </span>
                 </div>
-                <div class="">Продолжительность: {movie.Duration}</div>
-                <div if={movie.NNM != 0} class="">Рейтинг NNM: <span class="rating">{movie.NNM}</span></div>
-                <div if={movie.Kinopoisk != 0} class="">Рейтинг Кинопоиска: {movie.Kinopoisk}</div>
-                <div if={movie.IMDb != 0} class="">Рейтинг IMDb: {movie.IMDb}</div>
+                <div>Продолжительность: {movie.Duration}</div>
+                <div if={movie.NNM != 0}>Рейтинг NNM: <span class="rating">{movie.NNM}</span></div>
+                <div if={movie.Kinopoisk != 0}>Рейтинг Кинопоиска: {movie.Kinopoisk}</div>
+                <div if={movie.IMDb != 0}>Рейтинг IMDb: {movie.IMDb}</div>
             </div>
         </div>
-        <div class="pointer small-bottom-padding" onclick="switching(this)" data-uk-toggle="\{target:'#i{movie.ID}'\}">
+        <!-- <hr class="uk-margin-small-top uk-margin-small-bottom uk-width-1-1"> -->
+        <div class="pointer mx2 my1" onclick="switching(this)">
             <span>+ Показать дополнительную информацию</span>
         </div>
-        <div id="i{movie.ID}" class="uk-hidden box">
-            <div class="columns" if={movie.Country.length > 0}>
-                <div class="column is-2">Страна:</div>
-                <div class="column is-10">
+        <div class="toggle hide mb2 ml2 mr2">
+            <!-- <hr class="uk-width-1-1 uk-margin-small-top"> -->
+            <div class="clearfix" if={movie.Country.length > 0}>
+                <div class="sm-col sm-col-2 px1">Страна:</div>
+                <div class="justify sm-col sm-col-10 px1">
                     <span each="{country, i in movie.Country}">
                         <a href="/search?country={country}">{country}</a><span if={i < movie.Country.length-1}>{', '}</span>
                     </span>
                 </div>
             </div>
-            <div class="columns" if={movie.Director.length > 0}>
-                <div class="column is-2">Режиссер:</div>
-                <div class="column is-10">
+            <div class="clearfix" if={movie.Director.length > 0}>
+                <div class="sm-col sm-col-2 px1">Режиссер:</div>
+                <div class="justify sm-col sm-col-10 px1">
                     <span each="{director, i in movie.Director}">
                         <a href="/search?director={director}">{director}</a><span if={i < movie.Director.length-1}>{', '}</span>
                     </span>
                 </div>
             </div>
-            <div class="columns" if={movie.Producer.length > 0}>
-                <div class="column is-2">Продюссер:</div>
-                <div class="column is-10">
+            <div class="clearfix" if={movie.Producer.length > 0}>
+                <div class="sm-col sm-col-2 px1">Продюссер:</div>
+                <div class="justify sm-col sm-col-10 px1">
                     <span each="{producer, i in movie.Producer}">
                         <a href="/search?producer={producer}">{producer}</a><span if={i < movie.Producer.length-1}>{', '}</span>
                     </span>
                 </div>
             </div>
-            <div class="columns" if={movie.Actor.length > 0}>
-                <div class="column is-2">Актеры:</div>
-                <div class="column is-10">
+            <div class="clearfix" if={movie.Actor.length > 0}>
+                <div class="sm-col sm-col-2 px1">Актеры:</div>
+                <div class="justify sm-col sm-col-10 px1">
                     <span each="{actor, i in movie.Actor}">
                         <a href="/search?actor={actor}">{actor}</a><span if={i < movie.Actor.length-1}>{', '}</span>
                     </span>
                 </div>
             </div>
-            <table class="table">
-                <thead class="uk-text-small">
-                    <tr>
-                        <th>Форум</th>
-                        <th>Magnet</th>
-                        <th>Размер</th>
-                        <th>Сиды</th>
-                        <th>Пиры</th>
-                        <th>Перевод</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr each="{torrent in movie.Torrent}">
-                        <td class="is-icon">
-                            <a href="http://nnmclub.to/forum/viewtopic.php?t={torrent.Href}">
-                                <i class="fa fa-external-link"></i>
-                            </a>
-                        </td>
-                        <td class="is-icon">
-                            <a href="magnet:?xt=urn:btih:{torrent.Magnet}">
-                                <i class="fa fa-magnet"></i> 
-                            </a>
-                        </td>
-                        <td>{torrent.Size}Мб</td>
-                        <td>
-                            <i class="fa fa-long-arrow-up"></i> {torrent.Seeders}
-                        </td>
-                        <td>
-                            <i class="fa fa-long-arrow-down"></i> {torrent.Leechers}
-                        </td>
-                        <td>{torrent.Translation}</td>
-                    </tr>
-                </tbody>
-            </table>
+            <div class="clearfix my1">
+                <div class="bold center sm-col sm-col-1 px1">Форум</div>
+                <div class="bold center sm-col sm-col-1 px1">Magnet</div>
+                <div class="bold center sm-col sm-col-1 px1">Размер</div>
+                <div class="bold center sm-col sm-col-1 px1">Сиды</div>
+                <div class="bold center sm-col sm-col-1 px1">Пиры</div>
+                <div class="bold center sm-col sm-col-7 px1">Перевод</div>
+            </div>
+            <div class="clearfix" each="{torrent in movie.Torrent}">
+                <div class="center sm-col sm-col-1">
+                    <a href="http://nnmclub.to/forum/viewtopic.php?t={torrent.Href}">
+                        <i class="fa fa-external-link"></i>
+                    </a>
+                </div>
+                <div class="center sm-col sm-col-1">
+                    <a href="magnet:?xt=urn:btih:{torrent.Magnet}">
+                        <i class="fa fa-magnet"></i>
+                    </a>
+                </div>
+                <div class="center sm-col sm-col-1">{torrent.Size}Мб</div>
+                <div class="center sm-col sm-col-1">
+                    <i class="fa fa-long-arrow-up"></i> {torrent.Seeders}
+                </div>
+                <div class="center sm-col sm-col-1">
+                    <i class="fa fa-long-arrow-down"></i> {torrent.Leechers}
+                </div>
+                <div class="sm-col sm-col-7">{torrent.Translation}</div>
+            </div>
         </div>
     </div>
 
@@ -93,11 +90,11 @@
         scrollEnd(e) {
             console.log(e)
         }
-        
+
         document.addEventListener(
-            'scroll', 
-            function(ev) 
-            {   
+            'scroll',
+            function(ev)
+            {
                 if ((window.innerHeight + window.scrollY) >= document.body.scrollHeight && self.mcount > self.moffset)
                 {
                     var url = "/movies?offset=" + self.moffset + "&limit=5";

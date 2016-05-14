@@ -1,52 +1,24 @@
 {{define "content"}}
 
-<section class="hero">
-    <div class="hero-head">
-        <div class="container">
-            <nav class="nav">
-                <div class="nav-left">
-                    <a class="nav-item" href="/">RSS</a>
-                    <p class="nav-item">
-                        <input class="input" type="text" placeholder="Поиск...">
-                    </p>
-                </div>
-                <div class="nav-right">
-                    <p class="nav-item">
-                        <span class="select">
-                            <select>
-                                <option>Select dropdown</option>
-                                <option>With options</option>
-                            </select>
-                        </span>
-                    </p>
-                </div>
-            </nav>
-        </div>
-    </div>
-</section>
-
-<section class="section">
-    <div class="container">
+    <div class="px3 lg-px4 uk-container-center uk-margin-top uk-margin-large-bottom">
         <movie></movie>
     </div>
-</section>
 
-<script src="/public/js/movie.tag" type="riot/tag"></script>
+    <script src="/public/js/movie.tag" type="riot/tag"></script>
 
-<script src="//cdn.jsdelivr.net/riot/2.3/riot+compiler.min.js"></script>
+    <script src="//cdn.jsdelivr.net/riot/2.4/riot+compiler.min.js"></script>
 
-<script>
-    var url = "/movies?offset=0&limit=10";
-    var xmlhttp = new XMLHttpRequest();
-    xmlhttp.onreadystatechange = function() {
-        if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
-            var data = JSON.parse(xmlhttp.responseText);
-            riot.mount('movie', { data: data });
+    <script>
+        var url = "/movies?offset=0&limit=10";
+        var xmlhttp = new XMLHttpRequest();
+        xmlhttp.onreadystatechange = function() {
+            if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
+                var data = JSON.parse(xmlhttp.responseText);
+                riot.mount('movie', { data: data });
+            }
         }
-    }
-    xmlhttp.open("GET", url, true);
-    xmlhttp.send();
-
-</script>
+        xmlhttp.open("GET", url, true);
+        xmlhttp.send();
+    </script>
 
 {{end}}
