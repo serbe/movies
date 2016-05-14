@@ -7,13 +7,13 @@ img {
 }
 
 .desc {
-    height: 81px;
+    height: 90px;
     overflow: hidden;
     text-overflow: ellipsis;
 }
 
 .addon {
-    height: 81px;
+    height: 90px;
     overflow: hidden;
     text-overflow: ellipsis;
 }

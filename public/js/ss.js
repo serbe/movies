@@ -5,14 +5,15 @@ function switching(e) {
     var desc = movie.getElementsByClassName('desc');
     var addon = movie.getElementsByClassName('addon');
     var pointer = movie.getElementsByClassName('pointer');
+    var toggle = movie.getElementsByClassName('toggle');
     var dch = desc[0].clientHeight;
     var dsh = desc[0].scrollHeight;
     var ach = addon[0].clientHeight;
     var ash = addon[0].scrollHeight;
-    if ((dsh == dch && dch != 81) || (ash == ach && ach != 81)) {
+    if ((dsh == dch && dch != 90) || (ash == ach && ach != 90)) {
         pointer[0].innerHTML = '+ Показать дополнительную информацию'
-        desc[0].style.height = '81px';
-        addon[0].style.height = '81px';
+        desc[0].style.height = '90px';
+        addon[0].style.height = '90px';
     } else {
         pointer[0].innerHTML = '- Скрыть дополнительную информацию'
         if (dsh > ash) {
@@ -22,6 +23,11 @@ function switching(e) {
             desc[0].style.height = ash + 'px';
             addon[0].style.height = ash + 'px';
         }
+    }
+    if (toggle[0].classList.contains('hide') === true) {
+        toggle[0].classList.remove('hide')
+    } else {
+        toggle[0].classList.add('hide')
     }
 }
 
