@@ -27,28 +27,6 @@ img {
 	cursor: pointer;
 }
 
-.margin-top-remove {
-    margin-top: 0px !important;
-}
-
-.margin-top-bottom-remove {
-    margin-top: 0px !important;
-    margin-bottom: 0px !important;
-}
-
-.small-bottom-padding {
-    padding-bottom: 4px !important;
-}
-
-.t-1 {
-    width: 10%;
-}
-
-.t-5 {
-    width: 50%;
-}
-
-.small-top-bottom-padding > .column {
-    padding-top: 4px !important;
-    padding-bottom: 4px !important;
+.shadow {
+    box-shadow: 5px 5px 5px black;;
 }

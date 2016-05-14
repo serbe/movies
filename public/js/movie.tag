@@ -1,5 +1,5 @@
 <movie>
-    <div each="{movie in movies}" class="movie border my1" no-reorder>
+    <div each="{movie in movies}" class="movie border shadow my1" no-reorder>
         <div class="h2 m1">{movie.Name} (<a href="/search?year={movie.Year}">{movie.Year}</a>)</div>
         <div class="clearfix">
             <div class="justify desc sm-col sm-col-8 px1">
