@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/json"
 	"io/ioutil"
-	"log"
 )
 
 type config struct {
@@ -30,7 +29,6 @@ func (app *application) getConfig() {
 		panic(err)
 	}
 	app.config = c
-	log.Println(app.config)
 }
 
 func round(v float64, decimals int) float64 {

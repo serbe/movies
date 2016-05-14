@@ -12,12 +12,6 @@ func root(c *gin.Context) {
 	})
 }
 
-// func react(c *gin.Context) {
-// 	c.HTML(200, "react", gin.H{
-// 		"title": "React Tutorial",
-// 	})
-// }
-
 func (app *application) getOneMovieJSON(c *gin.Context) {
 	movies := app.getMovies(1, 0)
 	c.JSON(200, movies)

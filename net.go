@@ -9,7 +9,7 @@ func initRender() multitemplate.Render {
 	r := multitemplate.New()
 
 	r.AddFromFiles("index", "templates/base.html", "templates/index.html")
-	r.AddFromFiles("react", "templates/react.html")
+	// r.AddFromFiles("react", "templates/react.html")
 
 	return r
 }
@@ -22,7 +22,6 @@ func (app *application) initServer() {
 	r.Use(gin.Recovery())
 
 	r.GET("/", root)
-	// r.GET("/react", react)
 
 	r.GET("/movie", app.getOneMovieJSON)
 	r.GET("/movies", app.getMoviesJSON)
