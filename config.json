@@ -2,7 +2,7 @@
 	"postgresql": {
 		"user": "rssuser",
 		"password": "rsspass",
-		"dbname": "rss",
+		"dbname": "rssdb",
 		"sslmode": false
 	},
 	"web": {

@@ -22,7 +22,7 @@ func (app *application) initServer() {
 	r.Use(gin.Recovery())
 
 	r.GET("/", root)
-	r.GET("/react", react)
+	// r.GET("/react", react)
 
 	r.GET("/movie", app.getOneMovieJSON)
 	r.GET("/movies", app.getMoviesJSON)
