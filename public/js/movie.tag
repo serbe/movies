@@ -11,18 +11,16 @@
                         <a href="/search?genre={genre}">{genre}</a><span if={i < movie.Genre.length-1}>{', '}</span>
                     </span>
                 </div>
-                <div>Продолжительность: {movie.Duration}</div>
+                <div>Время: {movie.Duration}</div>
                 <div if={movie.NNM != 0}>Рейтинг NNM: <span class="rating">{movie.NNM}</span></div>
                 <div if={movie.Kinopoisk != 0}>Рейтинг Кинопоиска: {movie.Kinopoisk}</div>
                 <div if={movie.IMDb != 0}>Рейтинг IMDb: {movie.IMDb}</div>
             </div>
         </div>
-        <!-- <hr class="uk-margin-small-top uk-margin-small-bottom uk-width-1-1"> -->
         <div class="pointer mx2 my1" onclick="switching(this)">
             <span>+ Показать дополнительную информацию</span>
         </div>
         <div class="toggle hide mb2 ml2 mr2">
-            <!-- <hr class="uk-width-1-1 uk-margin-small-top"> -->
             <div class="clearfix" if={movie.Country.length > 0}>
                 <div class="sm-col sm-col-2 px1">Страна:</div>
                 <div class="justify sm-col sm-col-10 px1">
@@ -76,10 +74,10 @@
                 </div>
                 <div class="center sm-col sm-col-1">{torrent.Size}Мб</div>
                 <div class="center sm-col sm-col-1">
-                    <i class="fa fa-long-arrow-up"></i> {torrent.Seeders}
+                    <i class="fa fa-arrow-up"></i> {torrent.Seeders}
                 </div>
                 <div class="center sm-col sm-col-1">
-                    <i class="fa fa-long-arrow-down"></i> {torrent.Leechers}
+                    <i class="fa fa-arrow-down"></i> {torrent.Leechers}
                 </div>
                 <div class="sm-col sm-col-7">{torrent.Translation}</div>
             </div>

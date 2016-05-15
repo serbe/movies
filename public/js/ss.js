@@ -11,11 +11,9 @@ function switching(e) {
     var ach = addon[0].clientHeight;
     var ash = addon[0].scrollHeight;
     if ((dsh == dch && dch != 90) || (ash == ach && ach != 90)) {
-        pointer[0].innerHTML = '+ Показать дополнительную информацию'
         desc[0].style.height = '90px';
         addon[0].style.height = '90px';
     } else {
-        pointer[0].innerHTML = '- Скрыть дополнительную информацию'
         if (dsh > ash) {
             desc[0].style.height = dsh + 'px';
             addon[0].style.height = dsh + 'px';
@@ -25,8 +23,10 @@ function switching(e) {
         }
     }
     if (toggle[0].classList.contains('hide') === true) {
+        pointer[0].innerText = '- Скрыть дополнительную информацию'
         toggle[0].classList.remove('hide')
     } else {
+        pointer[0].innerText = '+ Показать дополнительную информацию'
         toggle[0].classList.add('hide')
     }
 }
