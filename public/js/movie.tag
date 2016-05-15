@@ -74,10 +74,20 @@
                 </div>
                 <div class="center sm-col sm-col-1">{torrent.Size}Мб</div>
                 <div class="center sm-col sm-col-1">
-                    <i class="fa fa-arrow-up"></i> {torrent.Seeders}
+                    <div class="clearfix">
+                        <div class="col col-6 pl2">
+                            <i class="fa fa-arrow-up"></i>
+                        </div>
+                        <div class="col col-6 pr2">{torrent.Seeders}</div>
+                    </div>
                 </div>
                 <div class="center sm-col sm-col-1">
-                    <i class="fa fa-arrow-down"></i> {torrent.Leechers}
+                    <div class="clearfix">
+                        <div class="col col-6 pl2">
+                            <i class="fa fa-arrow-down"></i>
+                        </div>
+                        <div class="col col-6 pr2">{torrent.Leechers}</div>
+                    </div>
                 </div>
                 <div class="sm-col sm-col-7">{torrent.Translation}</div>
             </div>
