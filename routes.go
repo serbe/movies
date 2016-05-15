@@ -4,12 +4,15 @@ import (
 	"strconv"
 
 	"github.com/labstack/echo"
-	"github.com/labstack/echo/engine/standard"
 )
 
+type ctx struct {
+	title string
+}
+
 func root(c echo.Context) error {
-	return c.Render(200, "index", gin.H{
-		"title": "Movie RSS",
+	return c.Render(200, "index", ctx{
+		title: "Movie RSS",
 	})
 }
 

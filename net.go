@@ -38,7 +38,7 @@ func (app *application) initServer() {
 	e.SetRenderer(initRender())
 
 	e.Use(middleware.Logger())
-	e.Use(middleware.Recover())
+	// e.Use(middleware.Recover())
 
 	e.GET("/", root)
 
