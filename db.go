@@ -86,7 +86,7 @@ func (app *application) getMovies(limit int, offset int) Data {
 	if offset > count {
 		offset = count
 	}
-	app.database.Model(&m).Offset(offset).Limit(limit).Select()
+	app.database.Model(&m).Order("id DESC").Offset(offset).Limit(limit).Select()
 
 	for _, movie := range m {
 		torrents := app.getMovieTorrents(movie.ID)
