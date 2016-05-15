@@ -1,13 +1,13 @@
 package main
 
 import (
-	"github.com/gin-gonic/gin"
+	"github.com/labstack/echo"
 	"gopkg.in/pg.v4"
 )
 
 type application struct {
 	config   config
-	server   *gin.Engine
+	server   *echo.Echo
 	database *pg.DB
 }
 

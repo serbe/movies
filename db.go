@@ -15,46 +15,46 @@ type Data struct {
 
 // Movie all values
 type Movie struct {
-	ID          int       `sql:"id"`
-	Section     string    `sql:"section"`
-	Name        string    `sql:"name"`
-	EngName     string    `sql:"eng_name"`
-	Year        int       `sql:"year"`
-	Genre       []string  `sql:"genre"        pg:",array" `
-	Country     []string  `sql:"country"      pg:",array"`
-	RawCountry  string    `sql:"raw_country"`
-	Director    []string  `sql:"director"     pg:",array"`
-	Producer    []string  `sql:"producer"     pg:",array"`
-	Actor       []string  `sql:"actor"        pg:",array"`
-	Description string    `sql:"description"`
-	Age         string    `sql:"age"`
-	ReleaseDate string    `sql:"release_date"`
-	RussianDate string    `sql:"russian_date"`
-	Duration    string    `sql:"duration"`
-	Kinopoisk   float64   `sql:"kinopoisk"`
-	IMDb        float64   `sql:"imdb"`
-	Poster      string    `sql:"poster"`
-	PosterURL   string    `sql:"poster_url"`
-	Torrent     []Torrent `sql:"-"`
-	NNM         float64   `sql:"-"`
+	ID          int       `sql:"id"           json:"id"`
+	Section     string    `sql:"section"      json:"section"`
+	Name        string    `sql:"name"         json:"name"`
+	EngName     string    `sql:"eng_name"     json:"eng_name"`
+	Year        int       `sql:"year"         json:"year"`
+	Genre       []string  `sql:"genre"        json:"genre"        pg:",array" `
+	Country     []string  `sql:"country"      json:"country"      pg:",array"`
+	RawCountry  string    `sql:"raw_country"  json:"raw_country"`
+	Director    []string  `sql:"director"     json:"director"     pg:",array"`
+	Producer    []string  `sql:"producer"     json:"producer"     pg:",array"`
+	Actor       []string  `sql:"actor"        json:"actor"        pg:",array"`
+	Description string    `sql:"description"  json:"description"`
+	Age         string    `sql:"age"          json:"age"`
+	ReleaseDate string    `sql:"release_date" json:"release_date"`
+	RussianDate string    `sql:"russian_date" json:"russian_date"`
+	Duration    string    `sql:"duration"     json:"duration"`
+	Kinopoisk   float64   `sql:"kinopoisk"    json:"kinopoisk"`
+	IMDb        float64   `sql:"imdb"         json:"imdb"`
+	Poster      string    `sql:"poster"       json:"poster"`
+	PosterURL   string    `sql:"poster_url"   json:"poster_url"`
+	Torrent     []Torrent `sql:"-"            json:"torrent"`
+	NNM         float64   `sql:"-"            json:"nnm"`
 }
 
 // Torrent all values
 type Torrent struct {
-	ID          int     `sql:"id"`
-	MovieID     int     `sql:"movie_id"`
-	DateCreate  string  `sql:"date_create"`
-	Href        string  `sql:"href"`
-	Torrent     string  `sql:"torrent"`
-	Magnet      string  `sql:"magnet"`
-	NNM         float64 `sql:"nnm"`
-	Video       string  `sql:"video"`
-	Quality     string  `sql:"quality"`
-	Resolution  string  `sql:"resolution"`
-	Translation string  `sql:"translation"`
-	Size        int     `sql:"size"`
-	Seeders     int     `sql:"seeders"`
-	Leechers    int     `sql:"leechers"`
+	ID          int     `sql:"id"                json:"id"`
+	MovieID     int     `sql:"movie_id"          json:"movie_id"`
+	DateCreate  string  `sql:"date_create"       json:"date_create"`
+	Href        string  `sql:"href"              json:"href"`
+	Torrent     string  `sql:"torrent"           json:"torrent"`
+	Magnet      string  `sql:"magnet"            json:"magnet"`
+	NNM         float64 `sql:"nnm"               json:"nnm"`
+	Video       string  `sql:"video"             json:"video"`
+	Quality     string  `sql:"quality"           json:"quality"`
+	Resolution  string  `sql:"resolution"        json:"resolution"`
+	Translation string  `sql:"translation"       json:"translation"`
+	Size        int     `sql:"size"              json:"size"`
+	Seeders     int     `sql:"seeders"           json:"seeders"`
+	Leechers    int     `sql:"leechers"          json:"leechers"`
 	// SubtitlesType string  `sql:"subtitles_type"`
 	// Subtitles     string  `sql:"subtitles"`
 	// Audio1        string  `sql:"audio1"`

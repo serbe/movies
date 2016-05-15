@@ -1,35 +1,54 @@
 package main
 
 import (
-	"github.com/gin-gonic/contrib/renders/multitemplate"
-	"github.com/gin-gonic/gin"
+	"html/template"
+	"io"
+
+	"github.com/labstack/echo"
+	"github.com/labstack/echo/engine/standard"
+	"github.com/labstack/echo/middleware"
 )
 
-func initRender() multitemplate.Render {
-	r := multitemplate.New()
-
-	r.AddFromFiles("index", "templates/base.html", "templates/index.html")
-	// r.AddFromFiles("react", "templates/react.html")
-
-	return r
+type tmpl struct {
+    templates *template.Template
 }
 
+func initRender() *tmpl {
+
+	t := &tmpl{
+		templates: template.Must(template.ParseGlob("templates/*.html")),
+	}
+	// r := multitemplate.New()
+
+	// r.AddFromFiles("index", "templates/base.html", "templates/index.html")
+	// r.AddFromFiles("react", "templates/react.html")
+
+	return t
+}
+
+// Render html template
+func (t *tmpl) Render(w io.Writer, name string, data interface{}, c echo.Context) error {
+	return t.templates.ExecuteTemplate(w, name, data)
+}
+
+
 func (app *application) initServer() {
-	r := gin.New()
-	r.HTMLRender = initRender()
+	e := echo.New()
 
-	r.Use(gin.Logger())
-	r.Use(gin.Recovery())
+	e.SetRenderer(initRender())
 
-	r.GET("/", root)
+	e.Use(middleware.Logger())
+	e.Use(middleware.Recover())
 
-	r.GET("/movie", app.getOneMovieJSON)
-	r.GET("/movies", app.getMoviesJSON)
+	e.GET("/", root)
 
-	r.Static("/public", "./public")
-	r.StaticFile("/favicon.ico", "./public/favicon.ico")
+	e.GET("/movie", app.getOneMovieJSON)
+	e.GET("/movies", app.getMoviesJSON)
 
-	r.Run(":" + app.config.Web.Port)
+	e.Static("/public", "public")
+	e.File("/favicon.ico", "public/favicon.ico")
 
-	app.server = r
+	e.Run(standard.New(":" + app.config.Web.Port))
+
+	app.server = e
 }
