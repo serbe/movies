@@ -3,12 +3,6 @@
 	"ignore": "test",
 	"package": [
 		{
-			"checksumSHA1": "rlKgdbW9KM40CU3afXjakFmJCqE=",
-			"path": "github.com/dinever/golf",
-			"revision": "8adab8acd21420f25f2eef7c69a4880be923e0f8",
-			"revisionTime": "2016-04-29T21:11:35Z"
-		},
-		{
 			"checksumSHA1": "BwhKb5ZaJpGR8xO9JF6WvzJ6uwU=",
 			"path": "github.com/jinzhu/inflection",
 			"revision": "3272df6c21d04180007eb3349844c89a3856bc25",

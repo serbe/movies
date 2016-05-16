@@ -1,40 +1,34 @@
 package main
 
 import (
+	"encoding/json"
+	"net/http"
 	"strconv"
-		"encoding/json"
-
-	"github.com/dinever/golf"
 )
 
-func (app *application) root(ctx *golf.Context) {
-	data := map[string]interface{}{
-    	"Title": "Hello World",
-	}
-	ctx.Loader("template").Render("index.html", data)
-}
-
-func (app *application) getOneMovieJSON(ctx *golf.Context) {
+func (app *application) getOneMovieJSON(w http.ResponseWriter, r *http.Request) {
 	movies := app.getMovies(1, 0)
 	data, err := json.Marshal(movies)
 	if err != nil {
-		panic(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
-	ctx.SetHeader("Content-Type", "application/json")
-	ctx.Send(data)
-
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(data)
 }
 
-func (app *application) getMoviesJSON(ctx *golf.Context) {
-	limitStr := ctx.Param("limit")
-	offsetStr := ctx.Param("offset")
+func (app *application) getMoviesJSON(w http.ResponseWriter, r *http.Request) {
+	query := r.URL.Query()
+	limitStr := query.Get("limit")
+	offsetStr := query.Get("offset")
 	limit, _ := strconv.Atoi(limitStr)
 	offset, _ := strconv.Atoi(offsetStr)
 	movies := app.getMovies(limit, offset)
 	data, err := json.Marshal(movies)
 	if err != nil {
-		panic(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
-	ctx.SetHeader("Content-Type", "application/json")
-	ctx.Send(data)
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(data)
 }
