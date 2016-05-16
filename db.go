@@ -6,11 +6,11 @@ import (
 
 // Data - data to sent JSON
 type Data struct {
-	Offset int
-	Count  int
-	Limit  int
-	ImgDir string
-	Movies []Movie
+	Offset int     `json:"Offset"`
+	Count  int     `json:"Count"`
+	Limit  int     `json:"Limit"`
+	ImgDir string  `json:"ImgDir"`
+	Movies []Movie `json:"Movies"`
 }
 
 // Movie all values

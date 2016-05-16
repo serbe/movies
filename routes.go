@@ -2,6 +2,7 @@ package main
 
 import (
 	"strconv"
+		"encoding/json"
 
 	"github.com/dinever/golf"
 )
@@ -15,7 +16,13 @@ func (app *application) root(ctx *golf.Context) {
 
 func (app *application) getOneMovieJSON(ctx *golf.Context) {
 	movies := app.getMovies(1, 0)
-	ctx.JSON(movies)
+	data, err := json.Marshal(movies)
+	if err != nil {
+		panic(err)
+	}
+	ctx.SetHeader("Content-Type", "application/json")
+	ctx.Send(data)
+
 }
 
 func (app *application) getMoviesJSON(ctx *golf.Context) {
@@ -23,6 +30,11 @@ func (app *application) getMoviesJSON(ctx *golf.Context) {
 	offsetStr := ctx.Param("offset")
 	limit, _ := strconv.Atoi(limitStr)
 	offset, _ := strconv.Atoi(offsetStr)
-	data := app.getMovies(limit, offset)
-	ctx.JSON(data)
+	movies := app.getMovies(limit, offset)
+	data, err := json.Marshal(movies)
+	if err != nil {
+		panic(err)
+	}
+	ctx.SetHeader("Content-Type", "application/json")
+	ctx.Send(data)
 }
