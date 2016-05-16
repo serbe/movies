@@ -1,24 +1,28 @@
 package main
 
 import (
-	"net/http"
 	"strconv"
+
+	"github.com/dinever/golf"
 )
 
-func (app *application) root(w http.ResponseWriter, req *http.Request) {
-	app.render(w, ctx{title: "Movie RSS"}, "index") 
+func (app *application) root(ctx *golf.Context) {
+	data := map[string]interface{}{
+    	"Title": "Hello World",
+	}
+	ctx.Loader("template").Render("index.html", data)
 }
 
-func (app *application) getOneMovieJSON(w http.ResponseWriter, req *http.Request) error {
+func (app *application) getOneMovieJSON(ctx *golf.Context) {
 	movies := app.getMovies(1, 0)
-	return c.JSON(200, movies)
+	ctx.JSON(movies)
 }
 
-func (app *application) getMoviesJSON(w http.ResponseWriter, req *http.Request) error {
-	limitStr := c.QueryParam("limit")
-	offsetStr := c.QueryParam("offset")
+func (app *application) getMoviesJSON(ctx *golf.Context) {
+	limitStr := ctx.Param("limit")
+	offsetStr := ctx.Param("offset")
 	limit, _ := strconv.Atoi(limitStr)
 	offset, _ := strconv.Atoi(offsetStr)
 	data := app.getMovies(limit, offset)
-	return c.JSON(200, data)
+	ctx.JSON(data)
 }
