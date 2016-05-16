@@ -2,53 +2,54 @@ package main
 
 import (
 	"html/template"
-	"io"
-
-	"github.com/labstack/echo"
-	"github.com/labstack/echo/engine/standard"
-	"github.com/labstack/echo/middleware"
+	"net/http"
+	"log"
+	"fmt"
+	
+	"github.com/codegangsta/negroni"
 )
 
-type tmpl struct {
-    templates *template.Template
+type ctx struct {
+	title string
 }
 
-func initRender() *tmpl {
+func (app *application) initRender() {
+	var templates map[string]*template.Template
+	// var funcMap = template.FuncMap{"add": add, "nolast": nolast}
+	index := []string{"templates/base.html", "templates/index.html"}
+	templates["index"] = template.Must(template.New("base.html").ParseFiles(index...))
+	// templates["index"] = template.Must(template.New("base.html").Funcs(funcMap).ParseFiles(index...))
 
-	t := &tmpl{
-		templates: template.Must(template.ParseGlob("templates/*.html")),
+	app.templates = templates
+}
+
+func (app *application) render(w http.ResponseWriter, c ctx, name string) error {
+	tmpl, ok := app.templates[name]
+	if !ok {
+		return fmt.Errorf("The template %s does not exist.", name)
 	}
-	// r := multitemplate.New()
-
-	// r.AddFromFiles("index", "templates/base.html", "templates/index.html")
-	// r.AddFromFiles("react", "templates/react.html")
-
-	return t
+	err := tmpl.ExecuteTemplate(w, "base.html", c)
+	if err != nil {
+		log.Print("template executing error: ", err)
+	}
+	return err
 }
-
-// Render html template
-func (t *tmpl) Render(w io.Writer, name string, data interface{}, c echo.Context) error {
-	return t.templates.ExecuteTemplate(w, name, data)
-}
-
 
 func (app *application) initServer() {
-	e := echo.New()
+	mux := http.NewServeMux()
+  	mux.HandleFunc("/", root)
+	mux.HandleFunc("/movie", app.getOneMovieJSON)
+	mux.HandleFunc("/movies", app.getMoviesJSON)
+	mux.HandleFunc("/favicon.ico", func(w http.ResponseWriter, req *http.Request) {
+		http.ServeFile(w, req, "./public/favicon.ico")
+	})
+	mux.Handle("/public/", http.StripPrefix("/public/", http.FileServer(http.Dir("./public"))))
 
-	e.SetRenderer(initRender())
-
-	e.Use(middleware.Logger())
-	// e.Use(middleware.Recover())
-
-	e.GET("/", root)
-
-	e.GET("/movie", app.getOneMovieJSON)
-	e.GET("/movies", app.getMoviesJSON)
-
-	e.Static("/public", "public")
-	e.File("/favicon.ico", "public/favicon.ico")
-
-	e.Run(standard.New(":" + app.config.Web.Port))
-
-	app.server = e
+	n := negroni.New()
+	n.Use(negroni.NewRecovery())
+	n.Use(negroni.NewLogger())
+	n.UseHandler(mux)
+  	n.Run(":" + app.config.Web.Port)
+	  
+	app.server = n
 }

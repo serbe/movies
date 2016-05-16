@@ -1,27 +1,20 @@
 package main
 
 import (
+	"net/http"
 	"strconv"
-
-	"github.com/labstack/echo"
 )
 
-type ctx struct {
-	title string
+func (app *application) root(w http.ResponseWriter, req *http.Request) {
+	app.render(w, ctx{title: "Movie RSS"}, "index") 
 }
 
-func root(c echo.Context) error {
-	return c.Render(200, "index", ctx{
-		title: "Movie RSS",
-	})
-}
-
-func (app *application) getOneMovieJSON(c echo.Context) error {
+func (app *application) getOneMovieJSON(w http.ResponseWriter, req *http.Request) error {
 	movies := app.getMovies(1, 0)
 	return c.JSON(200, movies)
 }
 
-func (app *application) getMoviesJSON(c echo.Context) error {
+func (app *application) getMoviesJSON(w http.ResponseWriter, req *http.Request) error {
 	limitStr := c.QueryParam("limit")
 	offsetStr := c.QueryParam("offset")
 	limit, _ := strconv.Atoi(limitStr)
