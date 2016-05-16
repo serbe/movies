@@ -2,14 +2,14 @@ package main
 
 import (
 	"html/template"
-	
-	"github.com/dinever/golf"	
+
+	"github.com/dinever/golf"
 	"gopkg.in/pg.v4"
 )
 
 type application struct {
 	config   config
-	server   *golf.Golf
+	server   *golf.Application
 	templates map[string]*template.Template
 	database *pg.DB
 }

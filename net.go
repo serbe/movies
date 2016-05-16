@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"log"
 	"fmt"
-	
-	"github.com/codegangsta/negroni"
+
+	"github.com/dinever/golf"
 )
 
 type ctx struct {
@@ -36,6 +36,9 @@ func (app *application) render(w http.ResponseWriter, c ctx, name string) error 
 }
 
 func (app *application) initServer() {
+	g := golf.New()
+
+
 	mux := http.NewServeMux()
   	mux.HandleFunc("/", root)
 	mux.HandleFunc("/movie", app.getOneMovieJSON)
@@ -50,6 +53,6 @@ func (app *application) initServer() {
 	n.Use(negroni.NewLogger())
 	n.UseHandler(mux)
   	n.Run(":" + app.config.Web.Port)
-	  
+
 	app.server = n
 }

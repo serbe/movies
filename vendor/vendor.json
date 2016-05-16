@@ -1,0 +1,61 @@
+{
+	"comment": "",
+	"ignore": "test",
+	"package": [
+		{
+			"checksumSHA1": "rlKgdbW9KM40CU3afXjakFmJCqE=",
+			"path": "github.com/dinever/golf",
+			"revision": "8adab8acd21420f25f2eef7c69a4880be923e0f8",
+			"revisionTime": "2016-04-29T21:11:35Z"
+		},
+		{
+			"checksumSHA1": "BwhKb5ZaJpGR8xO9JF6WvzJ6uwU=",
+			"path": "github.com/jinzhu/inflection",
+			"revision": "3272df6c21d04180007eb3349844c89a3856bc25",
+			"revisionTime": "2015-10-09T08:41:29Z"
+		},
+		{
+			"checksumSHA1": "lzxr2rdWylya6Z5Ft4oA0Fvr4TU=",
+			"path": "gopkg.in/bsm/ratelimit.v1",
+			"revision": "db14e161995a5177acef654cb0dd785e8ee8bc22",
+			"revisionTime": "2016-02-20T15:49:07Z"
+		},
+		{
+			"checksumSHA1": "LiYN5mIs8qu1hE6VHzj0iXu5rXk=",
+			"path": "gopkg.in/pg.v4",
+			"revision": "3f1e604e22eb58812179a88dff8c7a91af4872eb",
+			"revisionTime": "2016-05-15T10:02:01Z"
+		},
+		{
+			"checksumSHA1": "noYGhpM53gMRvQ8wF6cmHXmV2xA=",
+			"path": "gopkg.in/pg.v4/internal",
+			"revision": "3f1e604e22eb58812179a88dff8c7a91af4872eb",
+			"revisionTime": "2016-05-15T10:02:01Z"
+		},
+		{
+			"checksumSHA1": "wP0uIbuBsSyywgGVG4/YTpRq4u4=",
+			"path": "gopkg.in/pg.v4/internal/parser",
+			"revision": "3f1e604e22eb58812179a88dff8c7a91af4872eb",
+			"revisionTime": "2016-05-15T10:02:01Z"
+		},
+		{
+			"checksumSHA1": "ZfAmnUUVCZvc+mKHfmLvtRr3HIQ=",
+			"path": "gopkg.in/pg.v4/internal/pool",
+			"revision": "3f1e604e22eb58812179a88dff8c7a91af4872eb",
+			"revisionTime": "2016-05-15T10:02:01Z"
+		},
+		{
+			"checksumSHA1": "uK+Tco1XLIMqv1GcJMVFssMkW5s=",
+			"path": "gopkg.in/pg.v4/orm",
+			"revision": "3f1e604e22eb58812179a88dff8c7a91af4872eb",
+			"revisionTime": "2016-05-15T10:02:01Z"
+		},
+		{
+			"checksumSHA1": "WY7HXqSmGH/c4jnKbWYZp3Gf2BA=",
+			"path": "gopkg.in/pg.v4/types",
+			"revision": "3f1e604e22eb58812179a88dff8c7a91af4872eb",
+			"revisionTime": "2016-05-15T10:02:01Z"
+		}
+	],
+	"rootPath": "github.com/serbe/movies"
+}
