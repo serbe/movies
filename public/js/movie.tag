@@ -1,55 +1,55 @@
 <movie>
     <div each="{movie in movies}" class="movie border shadow my1" no-reorder>
-        <div class="h2 m1">{movie.Name} (<a href="/search?year={movie.Year}">{movie.Year}</a>)</div>
+        <div class="h2 m1">{movie.name} (<a href="/search?year={movie.year}">{movie.year}</a>)</div>
         <div class="clearfix">
             <div class="justify desc sm-col sm-col-8 px1">
-                <img src="/public/img/{movie.Poster}" alt="{movie.Name}">{movie.Description}
+                <img src="/public/img/{movie.poster}" alt="{movie.name}">{movie.description}
             </div>
             <div class="addon sm-col sm-col-4 px1">
                 <div class="genre">Жанр:
-                    <span each="{genre, i in movie.Genre}">
-                        <a href="/search?genre={genre}">{genre}</a><span if={i < movie.Genre.length-1}>{', '}</span>
+                    <span each="{genre, i in movie.genre}">
+                        <a href="/search?genre={genre}">{genre}</a><span if={i < movie.genre.length-1}>{', '}</span>
                     </span>
                 </div>
-                <div>Время: {movie.Duration}</div>
-                <div if={movie.NNM != 0}>Рейтинг NNM: <span class="rating">{movie.NNM}</span></div>
-                <div if={movie.Kinopoisk != 0}>Рейтинг Кинопоиска: {movie.Kinopoisk}</div>
-                <div if={movie.IMDb != 0}>Рейтинг IMDb: {movie.IMDb}</div>
+                <div>Время: {movie.duration}</div>
+                <div if={movie.nnm != 0}>Рейтинг NNM: <span class="rating">{movie.nnm}</span></div>
+                <div if={movie.kinopoisk != 0}>Рейтинг Кинопоиска: {movie.kinopoisk}</div>
+                <div if={movie.imdb != 0}>Рейтинг IMDb: {movie.imdb}</div>
             </div>
         </div>
         <div class="pointer mx2 my1" onclick="switching(this)">
             <span>+ Показать дополнительную информацию</span>
         </div>
         <div class="toggle hide mb2 ml2 mr2">
-            <div class="clearfix" if={movie.Country.length > 0}>
+            <div class="clearfix" if={movie.country.length > 0}>
                 <div class="sm-col sm-col-2 px1">Страна:</div>
                 <div class="justify sm-col sm-col-10 px1">
-                    <span each="{country, i in movie.Country}">
-                        <a href="/search?country={country}">{country}</a><span if={i < movie.Country.length-1}>{', '}</span>
+                    <span each="{country, i in movie.country}">
+                        <a href="/search?country={country}">{country}</a><span if={i < movie.country.length-1}>{', '}</span>
                     </span>
                 </div>
             </div>
-            <div class="clearfix" if={movie.Director.length > 0}>
+            <div class="clearfix" if={movie.director.length > 0}>
                 <div class="sm-col sm-col-2 px1">Режиссер:</div>
                 <div class="justify sm-col sm-col-10 px1">
-                    <span each="{director, i in movie.Director}">
-                        <a href="/search?director={director}">{director}</a><span if={i < movie.Director.length-1}>{', '}</span>
+                    <span each="{director, i in movie.director}">
+                        <a href="/search?director={director}">{director}</a><span if={i < movie.director.length-1}>{', '}</span>
                     </span>
                 </div>
             </div>
-            <div class="clearfix" if={movie.Producer.length > 0}>
+            <div class="clearfix" if={movie.producer.length > 0}>
                 <div class="sm-col sm-col-2 px1">Продюссер:</div>
                 <div class="justify sm-col sm-col-10 px1">
-                    <span each="{producer, i in movie.Producer}">
-                        <a href="/search?producer={producer}">{producer}</a><span if={i < movie.Producer.length-1}>{', '}</span>
+                    <span each="{producer, i in movie.producer}">
+                        <a href="/search?producer={producer}">{producer}</a><span if={i < movie.producer.length-1}>{', '}</span>
                     </span>
                 </div>
             </div>
-            <div class="clearfix" if={movie.Actor.length > 0}>
+            <div class="clearfix" if={movie.actor.length > 0}>
                 <div class="sm-col sm-col-2 px1">Актеры:</div>
                 <div class="justify sm-col sm-col-10 px1">
-                    <span each="{actor, i in movie.Actor}">
-                        <a href="/search?actor={actor}">{actor}</a><span if={i < movie.Actor.length-1}>{', '}</span>
+                    <span each="{actor, i in movie.actor}">
+                        <a href="/search?actor={actor}">{actor}</a><span if={i < movie.actor.length-1}>{', '}</span>
                     </span>
                 </div>
             </div>
@@ -61,24 +61,24 @@
                 <div class="bold center sm-col sm-col-1 px1">Пиры</div>
                 <div class="bold center sm-col sm-col-7 px1">Перевод</div>
             </div>
-            <div class="clearfix" each="{torrent in movie.Torrent}">
+            <div class="clearfix" each="{torrent in movie.torrent}">
                 <div class="center sm-col sm-col-1">
-                    <a href="http://nnmclub.to/forum/viewtopic.php?t={torrent.Href}">
+                    <a href="http://nnmclub.to/forum/viewtopic.php?t={torrent.href}">
                         <i class="fa fa-external-link"></i>
                     </a>
                 </div>
                 <div class="center sm-col sm-col-1">
-                    <a href="magnet:?xt=urn:btih:{torrent.Magnet}">
+                    <a href="magnet:?xt=urn:btih:{torrent.magnet}">
                         <i class="fa fa-magnet"></i>
                     </a>
                 </div>
-                <div class="center sm-col sm-col-1">{torrent.Size}Мб</div>
+                <div class="center sm-col sm-col-1">{torrent.size}Мб</div>
                 <div class="center sm-col sm-col-1">
                     <div class="clearfix">
                         <div class="col col-6 pl2">
                             <i class="fa fa-arrow-up"></i>
                         </div>
-                        <div class="col col-6 pr2">{torrent.Seeders}</div>
+                        <div class="col col-6 pr2">{torrent.seeders}</div>
                     </div>
                 </div>
                 <div class="center sm-col sm-col-1">
@@ -86,10 +86,10 @@
                         <div class="col col-6 pl2">
                             <i class="fa fa-arrow-down"></i>
                         </div>
-                        <div class="col col-6 pr2">{torrent.Leechers}</div>
+                        <div class="col col-6 pr2">{torrent.leechers}</div>
                     </div>
                 </div>
-                <div class="sm-col sm-col-7">{torrent.Translation}</div>
+                <div class="center sm-col sm-col-7">{torrent.translation}</div>
             </div>
         </div>
     </div>
