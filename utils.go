@@ -3,6 +3,9 @@ package main
 import (
 	"encoding/json"
 	"io/ioutil"
+	"log"
+	"net/http"
+	"time"
 )
 
 type config struct {
@@ -37,4 +40,9 @@ func round(v float64, decimals int) float64 {
 		pow *= 10
 	}
 	return float64(int((v*pow)+0.5)) / pow
+}
+
+func printLog(startTime time.Time, r *http.Request) {
+	currentTime := time.Now()
+	log.Printf("[%s] %q %v\n", r.Method, r.URL.String(), currentTime.Sub(startTime))
 }
