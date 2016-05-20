@@ -18,6 +18,7 @@ type config struct {
 	Web struct {
 		ImgDir string `json:"img_dir"`
 		Port   string `json:"port"`
+		Log    bool   `json:"log"`
 	} `json:"web"`
 }
 
@@ -42,7 +43,9 @@ func round(v float64, decimals int) float64 {
 	return float64(int((v*pow)+0.5)) / pow
 }
 
-func printLog(startTime time.Time, r *http.Request) {
-	currentTime := time.Now()
-	log.Printf("[%s] %q %v\n", r.Method, r.URL.String(), currentTime.Sub(startTime))
+func (app *application) printLog(startTime time.Time, r *http.Request) {
+	if app.config.Web.Log == true {
+		currentTime := time.Now()
+		log.Printf("[%s] %q %v\n", r.Method, r.URL.String(), currentTime.Sub(startTime))
+	}
 }

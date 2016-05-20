@@ -5,7 +5,7 @@ import (
 )
 
 func (app *application) initServer() {
-	http.HandleFunc("/", root)
+	http.HandleFunc("/", app.root)
 	http.HandleFunc("/movie", app.getOneMovieJSON)
 	http.HandleFunc("/movies", app.getMoviesJSON)
 	http.HandleFunc("/favicon.ico", func(w http.ResponseWriter, req *http.Request) {

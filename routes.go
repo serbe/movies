@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-func root(w http.ResponseWriter, r *http.Request)  {
+func (app *application) root(w http.ResponseWriter, r *http.Request)  {
 	t := time.Now()
 	data, err := ioutil.ReadFile("./templates/root.html")
 	if err != nil {
@@ -16,7 +16,7 @@ func root(w http.ResponseWriter, r *http.Request)  {
 		return
 	}
 	w.Write(data)
-	printLog(t, r)
+	app.printLog(t, r)
 }
 
 func (app *application) getOneMovieJSON(w http.ResponseWriter, r *http.Request) {
@@ -29,7 +29,7 @@ func (app *application) getOneMovieJSON(w http.ResponseWriter, r *http.Request) 
 	}
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(data)
-	printLog(t, r)
+	app.printLog(t, r)
 }
 
 func (app *application) getMoviesJSON(w http.ResponseWriter, r *http.Request) {
@@ -47,5 +47,5 @@ func (app *application) getMoviesJSON(w http.ResponseWriter, r *http.Request) {
 	}
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(data)
-	printLog(t, r)
+	app.printLog(t, r)
 }
