@@ -1,8 +1,6 @@
 package main
 
-import (
-	"gopkg.in/pg.v4"
-)
+import "gopkg.in/pg.v4"
 
 // Data - data to sent JSON
 type Data struct {
@@ -15,7 +13,7 @@ type Data struct {
 
 // Movie all values
 type Movie struct {
-	ID          int       `sql:"id"           json:"id"`
+	ID          int       `sql:"id,pk"        json:"id"`
 	Section     string    `sql:"section"      json:"section"`
 	Name        string    `sql:"name"         json:"name"`
 	EngName     string    `sql:"eng_name"     json:"eng_name"`
@@ -41,7 +39,7 @@ type Movie struct {
 
 // Torrent all values
 type Torrent struct {
-	ID          int     `sql:"id"                json:"id"`
+	ID          int     `sql:"id,pk"             json:"id"`
 	MovieID     int     `sql:"movie_id"          json:"movie_id"`
 	DateCreate  string  `sql:"date_create"       json:"date_create"`
 	Href        string  `sql:"href"              json:"href"`
@@ -86,9 +84,10 @@ func (app *application) getMovies(limit int, offset int) Data {
 	if offset > count {
 		offset = count
 	}
-	app.database.Model(&m).Order("id DESC").Offset(offset).Limit(limit).Select()
+	//app.database.Model(&m).Order("id DESC").Offset(offset).Limit(limit).Select()
 	// fast
 	// EXPLAIN ANALYZE SELECT * FROM movies t1 JOIN (SELECT id FROM movies ORDER BY id LIMIT 10 OFFSET 150) as t2 ON t2.id = t1.id;
+	app.database.Query(&m, `SELECT * FROM movies t1 JOIN (SELECT id FROM movies ORDER BY id LIMIT ? OFFSET ?) as t2 ON t2.id = t1.id;`, limit, offset)
 
 	for _, movie := range m {
 		torrents := app.getMovieTorrents(movie.ID)
