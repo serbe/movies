@@ -2,10 +2,10 @@
     <div each="{movie in movies}" class="movie border shadow my1" no-reorder>
         <div class="h2 m1">{movie.name} (<a href="/search?year={movie.year}">{movie.year}</a>)</div>
         <div class="clearfix">
-            <div class="justify desc sm-col sm-col-8 px1">
+            <div class="justify desc sm-col sm-col-9 px1">
                 <img src="/public/img/{movie.poster}" alt="{movie.name}">{movie.description}
             </div>
-            <div class="addon sm-col sm-col-4 px1">
+            <div class="addon sm-col sm-col-3 px1">
                 <div class="genre">Жанр:
                     <span each="{genre, i in movie.genre}">
                         <a href="/search?genre={genre}">{genre}</a><span if={i < movie.genre.length-1}>{', '}</span>
