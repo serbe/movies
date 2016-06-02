@@ -87,7 +87,7 @@ func (app *application) getMovies(limit int, offset int) Data {
 	//app.database.Model(&m).Order("id DESC").Offset(offset).Limit(limit).Select()
 	// fast
 	// EXPLAIN ANALYZE SELECT * FROM movies t1 JOIN (SELECT id FROM movies ORDER BY id LIMIT 10 OFFSET 150) as t2 ON t2.id = t1.id;
-	app.database.Query(&m, `SELECT * FROM movies t1 JOIN (SELECT id FROM movies ORDER BY id LIMIT ? OFFSET ?) as t2 ON t2.id = t1.id;`, limit, offset)
+	app.database.Query(&m, `SELECT * FROM movies t1 JOIN (SELECT id FROM movies ORDER BY id DESC LIMIT ? OFFSET ?) as t2 ON t2.id = t1.id;`, limit, offset)
 
 	for _, movie := range m {
 		torrents := app.getMovieTorrents(movie.ID)
