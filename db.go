@@ -60,6 +60,11 @@ type Torrent struct {
 	// Audio3        string  `sql:"audio3"`
 }
 
+type search struct {
+	ID      int `sql:"id,pk"             json:"id"`
+	MovieID int `sql:"movie_id"          json:"movie_id"`
+}
+
 func (app *application) initDB() {
 	db := pg.Connect(&pg.Options{
 		Database: app.config.Base.Dbname,
@@ -72,9 +77,10 @@ func (app *application) initDB() {
 
 func (app *application) getMovies(limit int, offset int) Data {
 	var (
-		movies, m []Movie
-		count     int
-		data      Data
+		movies   []Movie
+		count    int
+		data     Data
+		searches []search
 	)
 
 	count, _ = app.database.Model(&movies).Column("id").Count()
@@ -87,9 +93,9 @@ func (app *application) getMovies(limit int, offset int) Data {
 	//app.database.Model(&m).Order("id DESC").Offset(offset).Limit(limit).Select()
 	// fast
 	// EXPLAIN ANALYZE SELECT * FROM movies t1 JOIN (SELECT id FROM movies ORDER BY id LIMIT 10 OFFSET 150) as t2 ON t2.id = t1.id;
-	app.database.Query(&m, `SELECT * FROM movies t1 JOIN (SELECT id FROM movies ORDER BY id DESC LIMIT ? OFFSET ?) as t2 ON t2.id = t1.id;`, limit, offset)
-
-	for _, movie := range m {
+	app.database.Query(&searches, `SELECT max(id), movie_id from torrents group by movie_id order by max(id) desc LIMIT ? OFFSET ?;`, limit, offset)
+	for _, s := range searches {
+		movie := app.getMovieByID(s.MovieID)
 		torrents := app.getMovieTorrents(movie.ID)
 		if len(torrents) > 0 {
 			var i float64
@@ -109,8 +115,14 @@ func (app *application) getMovies(limit int, offset int) Data {
 	return data
 }
 
+func (app *application) getMovieByID(id int) Movie {
+	var movie Movie
+	app.database.Model(&movie).Where("id = ?", id).Select()
+	return movie
+}
+
 func (app *application) getMovieTorrents(id int) []Torrent {
 	var torrents []Torrent
-	app.database.Model(&torrents).Where("movie_id = ?", id).Select()
+	app.database.Model(&torrents).Where("movie_id = ?", id).Order("id DESC").Select()
 	return torrents
 }
