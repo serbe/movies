@@ -3,6 +3,7 @@ package orm
 import (
 	"database/sql"
 	"errors"
+	"fmt"
 	"reflect"
 	"time"
 
@@ -26,33 +27,42 @@ func NewModel(values ...interface{}) (Model, error) {
 	}
 
 	v0 := values[0]
-	if v0, ok := v0.(sql.Scanner); ok {
+	switch v0 := v0.(type) {
+	case Model:
+		return v0, nil
+	case sql.Scanner:
 		return Scan(v0), nil
 	}
 
 	v := reflect.ValueOf(v0)
 	if !v.IsValid() {
-		return nil, errors.New("pg: NewModel(nil)")
+		return nil, errors.New("pg: Model(nil)")
 	}
-	v = reflect.Indirect(v)
+	if v.Kind() != reflect.Ptr {
+		return nil, fmt.Errorf("pg: Model(non-pointer %T)", v0)
+	}
+	v = v.Elem()
 
 	switch v.Kind() {
 	case reflect.Struct:
 		return newStructTableModel(v)
 	case reflect.Slice:
-		elType := indirectType(v.Type().Elem())
-		if elType.Kind() == reflect.Struct && elType != timeType {
-			return &sliceTableModel{
+		typ := v.Type()
+		structType := indirectType(typ.Elem())
+		if structType.Kind() == reflect.Struct && structType != timeType {
+			m := sliceTableModel{
 				structTableModel: structTableModel{
-					table: Tables.Get(elType),
+					table: Tables.Get(structType),
 					root:  v,
 				},
 				slice: v,
-			}, nil
+			}
+			m.init(typ)
+			return &m, nil
 		} else {
 			return &sliceModel{
 				slice: v,
-				scan:  types.Scanner(elType),
+				scan:  types.Scanner(structType),
 			}, nil
 		}
 	}

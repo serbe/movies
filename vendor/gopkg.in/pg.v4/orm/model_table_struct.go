@@ -7,13 +7,12 @@ import (
 	"strings"
 )
 
-// TODO: extract AppendParam to separate struct and use it in Formatter
 type structTableModel struct {
 	table *Table
 	joins []join
 
-	root reflect.Value
-	path []int
+	root  reflect.Value
+	index []int
 
 	strct reflect.Value
 }
@@ -33,12 +32,12 @@ func newStructTableModel(v interface{}) (*structTableModel, error) {
 
 func newStructTableModelValue(v reflect.Value) (*structTableModel, error) {
 	if !v.IsValid() {
-		return nil, errors.New("pg: NewModel(nil)")
+		return nil, errors.New("pg: Model(nil)")
 	}
 	v = reflect.Indirect(v)
 
 	if v.Kind() != reflect.Struct {
-		return nil, fmt.Errorf("pg: NewModel(unsupported %s)", v.Type())
+		return nil, fmt.Errorf("pg: Model(unsupported %s)", v.Type())
 	}
 
 	return &structTableModel{
@@ -67,6 +66,12 @@ func (m *structTableModel) AppendParam(dst []byte, name string) ([]byte, bool) {
 		return dst, true
 	}
 
+	switch name {
+	case "TableAlias":
+		dst = append(dst, m.table.Alias...)
+		return dst, true
+	}
+
 	return dst, false
 }
 
@@ -74,30 +79,42 @@ func (m *structTableModel) Root() reflect.Value {
 	return m.root
 }
 
-func (m *structTableModel) Path() []int {
-	return m.path
+func (m *structTableModel) Index() []int {
+	return m.index
 }
 
 func (m *structTableModel) Bind(bind reflect.Value) {
-	m.strct = bind.Field(m.path[len(m.path)-1])
+	m.strct = bind.Field(m.index[len(m.index)-1])
 }
 
 func (m *structTableModel) Value() reflect.Value {
 	return m.strct
 }
 
-func (m *structTableModel) NewModel() ColumnScanner {
+func (m *structTableModel) bindChildren() {
 	for i := range m.joins {
 		j := &m.joins[i]
-		if j.Rel.One {
+		switch j.Rel.Type {
+		case HasOneRelation, BelongsToRelation:
 			j.JoinModel.Bind(m.strct)
 		}
 	}
+}
+
+func (m *structTableModel) NewModel() ColumnScanner {
+	m.bindChildren()
 	return m
 }
 
-func (structTableModel) AddModel(_ ColumnScanner) error {
+func (m *structTableModel) AddModel(_ ColumnScanner) error {
 	return nil
+}
+
+func (m *structTableModel) AfterSelect(db DB) error {
+	if !m.table.Has(AfterSelectHookFlag) {
+		return nil
+	}
+	return callAfterSelectHook(m.strct.Addr(), db)
 }
 
 func (m *structTableModel) ScanColumn(colIdx int, colName string, b []byte) error {
@@ -105,7 +122,7 @@ func (m *structTableModel) ScanColumn(colIdx int, colName string, b []byte) erro
 	if ok {
 		return err
 	}
-	return fmt.Errorf("pg: can't find column %q in model %s", colName, m.table.ModelName)
+	return fmt.Errorf("pg: can't find column %s in model %s", colName, m.table.Type.Name())
 }
 
 func (m *structTableModel) scanColumn(colIdx int, colName string, b []byte) (bool, error) {
@@ -127,8 +144,11 @@ func (m *structTableModel) scanColumn(colIdx int, colName string, b []byte) (boo
 		if m.strct.Kind() == reflect.Ptr {
 			if m.strct.IsNil() {
 				m.strct.Set(reflect.New(m.strct.Type().Elem()))
+				m.strct = m.strct.Elem()
+				m.bindChildren()
+			} else {
+				m.strct = m.strct.Elem()
 			}
-			m.strct = m.strct.Elem()
 		}
 		return true, field.ScanValue(m.strct, b)
 	}
@@ -155,15 +175,15 @@ func (m *structTableModel) AddJoin(j join) *join {
 	return &m.joins[len(m.joins)-1]
 }
 
-func (m *structTableModel) Join(name string) *join {
-	return addJoin(m, m.Value(), name)
+func (m *structTableModel) Join(name string, apply func(*Query) *Query) *join {
+	return m.join(m.Value(), name, apply)
 }
 
-func addJoin(m *structTableModel, bind reflect.Value, name string) *join {
+func (m *structTableModel) join(bind reflect.Value, name string, apply func(*Query) *Query) *join {
 	path := strings.Split(name, ".")
 	index := make([]int, 0, len(path))
 
-	thejoin := join{
+	currJoin := join{
 		BaseModel: m,
 		JoinModel: m,
 	}
@@ -171,27 +191,28 @@ func addJoin(m *structTableModel, bind reflect.Value, name string) *join {
 	var hasColumnName bool
 
 	for _, name := range path {
-		rel, ok := thejoin.JoinModel.Table().Relations[name]
+		rel, ok := currJoin.JoinModel.Table().Relations[name]
 		if !ok {
 			hasColumnName = true
 			break
 		}
-		thejoin.Rel = rel
+		currJoin.Rel = rel
 		index = append(index, rel.Field.Index...)
 
-		if j := thejoin.JoinModel.GetJoin(name); j != nil {
-			thejoin.BaseModel = j.BaseModel
-			thejoin.JoinModel = j.JoinModel
+		if j := currJoin.JoinModel.GetJoin(name); j != nil {
+			currJoin.BaseModel = j.BaseModel
+			currJoin.JoinModel = j.JoinModel
 			lastJoin = j
 		} else {
-			model, err := newTableModelPath(bind, index, rel.Join)
+			model, err := newTableModelIndex(bind, index, rel.JoinTable)
 			if err != nil {
 				return nil
 			}
 
-			thejoin.BaseModel = thejoin.JoinModel
-			thejoin.JoinModel = model
-			lastJoin = thejoin.BaseModel.AddJoin(thejoin)
+			currJoin.Parent = lastJoin
+			currJoin.BaseModel = currJoin.JoinModel
+			currJoin.JoinModel = model
+			lastJoin = currJoin.BaseModel.AddJoin(currJoin)
 		}
 	}
 
@@ -199,16 +220,13 @@ func addJoin(m *structTableModel, bind reflect.Value, name string) *join {
 	if lastJoin == nil {
 		return nil
 	}
+	if apply != nil {
+		lastJoin.ApplyQuery = apply
+	}
 
 	if hasColumnName {
 		column := path[len(path)-1]
-		if column == "_" {
-			column = path[len(path)-2]
-		} else {
-			lastJoin.Columns = append(lastJoin.Columns, column)
-		}
-	} else {
-		lastJoin.SelectAll = true
+		lastJoin.Columns = append(lastJoin.Columns, column)
 	}
 
 	return lastJoin

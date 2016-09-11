@@ -2,6 +2,8 @@ package pool
 
 import (
 	"bufio"
+	"encoding/hex"
+	"fmt"
 	"io"
 	"net"
 	"strconv"
@@ -12,9 +14,11 @@ var noDeadline = time.Time{}
 
 type Conn struct {
 	NetConn net.Conn
-	Buf     []byte
 	Rd      *bufio.Reader // read buffer
 	Wr      *Buffer       // write buffer
+
+	Buf     []byte   // reusable
+	Columns [][]byte // reusable
 
 	Inited bool
 	UsedAt time.Time
@@ -85,4 +89,14 @@ func (cn *Conn) ReadN(n int) ([]byte, error) {
 
 func (cn *Conn) Close() error {
 	return cn.NetConn.Close()
+}
+
+func (cn *Conn) CheckHealth() error {
+	if cn.Rd.Buffered() != 0 {
+		b, _ := cn.Rd.Peek(cn.Rd.Buffered())
+		err := fmt.Errorf("connection has unread data:\n%s", hex.Dump(b))
+		return err
+	}
+
+	return nil
 }

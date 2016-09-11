@@ -1,6 +1,6 @@
 package orm
 
-func Update(db dber, v interface{}) error {
+func Update(db DB, v interface{}) error {
 	q := NewQuery(db, v)
 	if q.err != nil {
 		return q.err
@@ -19,7 +19,7 @@ func (upd updateQuery) AppendQuery(b []byte, params ...interface{}) ([]byte, err
 	var err error
 
 	b = append(b, "UPDATE "...)
-	b = upd.appendTableNameWithAlias(b)
+	b = upd.appendTables(b)
 
 	b, err = upd.appendSet(b)
 	if err != nil {

@@ -4,7 +4,9 @@ import (
 	"sync"
 	"time"
 
+	"gopkg.in/pg.v4/internal"
 	"gopkg.in/pg.v4/internal/pool"
+	"gopkg.in/pg.v4/orm"
 	"gopkg.in/pg.v4/types"
 )
 
@@ -13,36 +15,15 @@ import (
 type Stmt struct {
 	db *DB
 
-	mu  sync.Mutex
-	_cn *pool.Conn
+	mu   sync.Mutex
+	_cn  *pool.Conn
+	inTx bool
 
+	q       string
 	name    string
-	columns []string
+	columns [][]byte
 
-	err error
-}
-
-func prepare(db *DB, cn *pool.Conn, q string) (*Stmt, error) {
-	name := cn.NextId()
-	writeParseDescribeSyncMsg(cn.Wr, name, q)
-	if err := cn.Wr.Flush(); err != nil {
-		db.freeConn(cn, err)
-		return nil, err
-	}
-
-	columns, err := readParseDescribeSync(cn)
-	if err != nil {
-		db.freeConn(cn, err)
-		return nil, err
-	}
-
-	stmt := &Stmt{
-		db:      db,
-		_cn:     cn,
-		name:    name,
-		columns: columns,
-	}
-	return stmt, nil
+	stickyErr error
 }
 
 // Prepare creates a prepared statement for later queries or
@@ -58,6 +39,9 @@ func (db *DB) Prepare(q string) (*Stmt, error) {
 
 func (stmt *Stmt) conn() (*pool.Conn, error) {
 	if stmt._cn == nil {
+		if stmt.stickyErr != nil {
+			return nil, stmt.stickyErr
+		}
 		return nil, errStmtClosed
 	}
 	stmt._cn.SetReadTimeout(stmt.db.opt.ReadTimeout)
@@ -88,7 +72,7 @@ func (stmt *Stmt) Exec(params ...interface{}) (res *types.Result, err error) {
 			break
 		}
 
-		time.Sleep(defaultBackoff << uint(i))
+		time.Sleep(internal.RetryBackoff << uint(i))
 	}
 	if err != nil {
 		stmt.setErr(err)
@@ -115,7 +99,17 @@ func (stmt *Stmt) query(model interface{}, params ...interface{}) (*types.Result
 	if err != nil {
 		return nil, err
 	}
-	return extQueryData(cn, stmt.name, model, stmt.columns, params...)
+
+	res, coll, err := extQueryData(cn, stmt.name, model, stmt.columns, params...)
+	if err != nil {
+		return nil, err
+	}
+	if coll != nil {
+		if err = coll.AfterSelect(stmt.db); err != nil {
+			return res, err
+		}
+	}
+	return res, nil
 }
 
 // Query executes a prepared query statement with the given parameters.
@@ -130,7 +124,7 @@ func (stmt *Stmt) Query(model interface{}, params ...interface{}) (res *types.Re
 			break
 		}
 
-		time.Sleep(defaultBackoff << uint(i))
+		time.Sleep(internal.RetryBackoff << uint(i))
 	}
 	if err != nil {
 		stmt.setErr(err)
@@ -142,29 +136,64 @@ func (stmt *Stmt) Query(model interface{}, params ...interface{}) (res *types.Re
 // returns ErrNoRows error when query returns zero rows or
 // ErrMultiRows when query returns multiple rows.
 func (stmt *Stmt) QueryOne(model interface{}, params ...interface{}) (*types.Result, error) {
-	mod, err := newSingleModel(model)
+	mod, err := orm.NewModel(model)
 	if err != nil {
 		return nil, err
 	}
+
 	res, err := stmt.Query(mod, params...)
 	if err != nil {
 		return nil, err
 	}
+
 	return assertOneAffected(res)
 }
 
 func (stmt *Stmt) setErr(e error) {
-	stmt.err = e
+	if stmt.stickyErr == nil {
+		stmt.stickyErr = e
+	}
 }
 
 // Close closes the statement.
 func (stmt *Stmt) Close() error {
+	defer stmt.mu.Unlock()
+	stmt.mu.Lock()
+
 	if stmt._cn == nil {
 		return errStmtClosed
 	}
-	err := stmt.db.freeConn(stmt._cn, stmt.err)
+
+	err := closeStmt(stmt._cn, stmt.name)
+	if !stmt.inTx {
+		_ = stmt.db.freeConn(stmt._cn, err)
+	}
 	stmt._cn = nil
 	return err
+}
+
+func prepare(db *DB, cn *pool.Conn, q string) (*Stmt, error) {
+	name := cn.NextId()
+	writeParseDescribeSyncMsg(cn.Wr, name, q)
+	if err := cn.Wr.Flush(); err != nil {
+		db.freeConn(cn, err)
+		return nil, err
+	}
+
+	columns, err := readParseDescribeSync(cn)
+	if err != nil {
+		db.freeConn(cn, err)
+		return nil, err
+	}
+
+	stmt := &Stmt{
+		db:      db,
+		_cn:     cn,
+		q:       q,
+		name:    name,
+		columns: columns,
+	}
+	return stmt, nil
 }
 
 func extQuery(cn *pool.Conn, name string, params ...interface{}) (*types.Result, error) {
@@ -177,14 +206,23 @@ func extQuery(cn *pool.Conn, name string, params ...interface{}) (*types.Result,
 	return readExtQuery(cn)
 }
 
-func extQueryData(cn *pool.Conn, name string, model interface{}, columns []string, params ...interface{}) (*types.Result, error) {
+func extQueryData(
+	cn *pool.Conn, name string, model interface{}, columns [][]byte, params ...interface{},
+) (*types.Result, orm.Collection, error) {
 	if err := writeBindExecuteMsg(cn.Wr, name, params...); err != nil {
-		return nil, err
+		return nil, nil, err
 	}
-
 	if err := cn.Wr.Flush(); err != nil {
-		return nil, err
+		return nil, nil, err
 	}
-
 	return readExtQueryData(cn, model, columns)
+}
+
+func closeStmt(cn *pool.Conn, name string) error {
+	writeCloseMsg(cn.Wr, name)
+	writeFlushMsg(cn.Wr)
+	if err := cn.Wr.Flush(); err != nil {
+		return err
+	}
+	return readCloseCompleteMsg(cn)
 }

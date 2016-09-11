@@ -21,6 +21,10 @@ func (sliceModel) AddModel(_ ColumnScanner) error {
 	return nil
 }
 
+func (sliceModel) AfterSelect(_ DB) error {
+	return nil
+}
+
 func (m *sliceModel) ScanColumn(colIdx int, _ string, b []byte) error {
 	v := internal.SliceNextElem(m.slice)
 	return m.scan(v, b)

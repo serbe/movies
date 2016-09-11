@@ -27,6 +27,10 @@ func (valuesModel) AddModel(_ ColumnScanner) error {
 	return nil
 }
 
+func (valuesModel) AfterSelect(_ DB) error {
+	return nil
+}
+
 func (m valuesModel) ScanColumn(colIdx int, _ string, b []byte) error {
 	return types.Scan(m.values[colIdx], b)
 }

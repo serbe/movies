@@ -6,24 +6,19 @@ import (
 	"gopkg.in/pg.v4/types"
 )
 
-var (
-	queryType = reflect.TypeOf(types.Q(nil))
-	fieldType = reflect.TypeOf(types.F(""))
-)
-
 const (
 	PrimaryKeyFlag = 1 << iota
-	ForeignKeyFlag = 1 << iota
-	NullFlag       = 1 << iota
+	ForeignKeyFlag
+	NullFlag
 )
 
 type Field struct {
-	GoName  string  // struct field name, e.g. Id
-	SQLName string  // SQL name, .e.g. id
-	ColName types.Q // escaped column name, e.g. "id"
+	GoName  string // struct field name, e.g. Id
+	SQLName string // SQL name, .e.g. id
+	ColName types.Q
 	Index   []int
 
-	flags int8
+	flags uint8
 
 	append types.AppenderFunc
 	scan   types.ScannerFunc
@@ -37,7 +32,7 @@ func (f *Field) Copy() *Field {
 	return &copy
 }
 
-func (f *Field) Has(flag int8) bool {
+func (f *Field) Has(flag uint8) bool {
 	return f.flags&flag != 0
 }
 
@@ -65,22 +60,6 @@ func (f *Field) AppendValue(b []byte, strct reflect.Value, quote int) []byte {
 func (f *Field) ScanValue(strct reflect.Value, b []byte) error {
 	fv := fieldByIndex(strct, f.Index)
 	return f.scan(fv, b)
-}
-
-func fieldByIndex(v reflect.Value, index []int) reflect.Value {
-	if len(index) == 1 {
-		return v.Field(index[0])
-	}
-	for i, x := range index {
-		if i > 0 && v.Kind() == reflect.Ptr {
-			if v.IsNil() {
-				v.Set(reflect.New(v.Type().Elem()))
-			}
-			v = v.Elem()
-		}
-		v = v.Field(x)
-	}
-	return v
 }
 
 type Method struct {

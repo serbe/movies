@@ -12,32 +12,67 @@ import (
 // Discard is used with Query and QueryOne to discard rows.
 var Discard orm.Discard
 
+// Model returns new query for the optional model.
+func Model(model ...interface{}) *orm.Query {
+	return orm.NewQuery(nil, model...)
+}
+
 // Scan returns ColumnScanner that copies the columns in the
 // row into the values.
 func Scan(values ...interface{}) orm.ColumnScanner {
 	return orm.Scan(values...)
 }
 
-// Q returns a ValueAppender that represents safe SQL query.
+// SQL returns a SQL query with params that are formatted on query execution.
+func SQL(query string, params ...interface{}) *orm.SQL {
+	return orm.NewSQL(query, params...)
+}
+
+// Q replaces any placeholders found in the query.
 func Q(query string, params ...interface{}) types.Q {
 	return orm.Q(query, params...)
 }
 
-// F returns a ValueAppender that represents SQL identifier,
-// e.g. table or column name.
+// F quotes a SQL identifier such as a table or column name replacing any
+// placeholders found in the field.
 func F(field string, params ...interface{}) types.F {
 	return orm.F(field, params...)
 }
 
-// Array returns an Array type that represents PostgreSQL array of any type.
+// In accepts a slice and returns a wrapper that can be used with PostgreSQL
+// IN operator:
+//
+//    Where("id IN (?)", pg.In([]int{1, 2, 3}))
+func In(slice interface{}) types.ValueAppender {
+	return types.In(slice)
+}
+
+// Array accepts a slice and returns a wrapper for working with PostgreSQL
+// array data type.
+//
+// Note that for struct fields you should use array tag:
+//
+//    Emails  []string `pg:",array"`
 func Array(v interface{}) *types.Array {
 	return types.NewArray(v)
+}
+
+// Hstore accepts a map and returns a wrapper for working with hstore data type.
+// Supported map types are:
+//   - map[string]string
+//
+// Note that for struct fields you should use hstore tag:
+//
+//    Attrs map[string]string `pg:",hstore"`
+func Hstore(v interface{}) *types.Hstore {
+	return types.NewHstore(v)
 }
 
 func SetLogger(logger *log.Logger) {
 	internal.Logger = logger
 }
 
+// SetQueryLogger sets a logger that will be used to log generated queries.
 func SetQueryLogger(logger *log.Logger) {
 	internal.QueryLogger = logger
 }
@@ -54,6 +89,10 @@ func (strings *Strings) NewModel() orm.ColumnScanner {
 }
 
 func (Strings) AddModel(_ orm.ColumnScanner) error {
+	return nil
+}
+
+func (Strings) AfterSelect(_ orm.DB) error {
 	return nil
 }
 
@@ -90,8 +129,12 @@ func (Ints) AddModel(_ orm.ColumnScanner) error {
 	return nil
 }
 
+func (Ints) AfterSelect(_ orm.DB) error {
+	return nil
+}
+
 func (ints *Ints) ScanColumn(colIdx int, colName string, b []byte) error {
-	n, err := strconv.ParseInt(string(b), 10, 64)
+	n, err := strconv.ParseInt(internal.BytesToString(b), 10, 64)
 	if err != nil {
 		return err
 	}
@@ -126,6 +169,10 @@ func (IntSet) AddModel(_ orm.ColumnScanner) error {
 	return nil
 }
 
+func (IntSet) AfterSelect(_ orm.DB) error {
+	return nil
+}
+
 func (setptr *IntSet) ScanColumn(colIdx int, colName string, b []byte) error {
 	set := *setptr
 	if set == nil {
@@ -133,7 +180,7 @@ func (setptr *IntSet) ScanColumn(colIdx int, colName string, b []byte) error {
 		set = *setptr
 	}
 
-	n, err := strconv.ParseInt(string(b), 10, 64)
+	n, err := strconv.ParseInt(internal.BytesToString(b), 10, 64)
 	if err != nil {
 		return err
 	}

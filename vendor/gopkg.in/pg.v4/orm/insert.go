@@ -1,11 +1,11 @@
 package orm
 
 import (
-	"bytes"
+	"errors"
 	"reflect"
 )
 
-func Create(db dber, v ...interface{}) error {
+func Create(db DB, v ...interface{}) error {
 	_, err := NewQuery(db, v...).Create()
 	return err
 }
@@ -18,6 +18,10 @@ type insertQuery struct {
 var _ QueryAppender = (*insertQuery)(nil)
 
 func (ins insertQuery) AppendQuery(b []byte, params ...interface{}) ([]byte, error) {
+	if ins.model == nil {
+		return nil, errors.New("pg: Model(nil)")
+	}
+
 	table := ins.model.Table()
 	value := ins.model.Value()
 
@@ -25,7 +29,7 @@ func (ins insertQuery) AppendQuery(b []byte, params ...interface{}) ([]byte, err
 	if len(ins.onConflict) > 0 {
 		b = ins.appendTableNameWithAlias(b)
 	} else {
-		b = append(b, ins.tableName...)
+		b = ins.appendTableName(b)
 	}
 	b = append(b, " ("...)
 
@@ -56,20 +60,7 @@ func (ins insertQuery) AppendQuery(b []byte, params ...interface{}) ([]byte, err
 	b = append(b, ')')
 
 	if len(ins.onConflict) > 0 {
-		b = append(b, " ON CONFLICT "...)
 		b = append(b, ins.onConflict...)
-		if bytes.HasSuffix(ins.onConflict, []byte("DO UPDATE")) {
-			var err error
-			b, err = ins.appendSet(b)
-			if err != nil {
-				return nil, err
-			}
-
-			if len(ins.where) > 0 {
-				b = append(b, " WHERE "...)
-				b = append(b, ins.where...)
-			}
-		}
 	}
 
 	if len(ins.returning) > 0 {

@@ -2,7 +2,7 @@ package orm
 
 import "gopkg.in/pg.v4/types"
 
-// ColumnScanner is an interface used to scan column.
+// ColumnScanner is used to scan column values.
 type ColumnScanner interface {
 	// Scan assigns a column value from a row.
 	//
@@ -19,16 +19,23 @@ type Collection interface {
 
 	// AddModel adds ColumnScanner to the Collection.
 	AddModel(ColumnScanner) error
+
+	AfterSelect(DB) error
 }
 
 type QueryAppender interface {
-	AppendQuery([]byte, ...interface{}) ([]byte, error)
+	AppendQuery(dst []byte, params ...interface{}) ([]byte, error)
 }
 
-type dber interface {
+type QueryFormatter interface {
+	FormatQuery(dst []byte, query string, params ...interface{}) []byte
+}
+
+// DB is a common interface for pg.DB and pg.Tx types.
+type DB interface {
 	Exec(q interface{}, params ...interface{}) (*types.Result, error)
 	ExecOne(q interface{}, params ...interface{}) (*types.Result, error)
 	Query(coll, query interface{}, params ...interface{}) (*types.Result, error)
 	QueryOne(model, query interface{}, params ...interface{}) (*types.Result, error)
-	FormatQuery(dst []byte, query string, params ...interface{}) []byte
+	QueryFormatter
 }

@@ -15,18 +15,27 @@ type Table struct {
 	Alias     types.Q
 	ModelName string
 	Type      reflect.Type
+	flags     int8
 
 	PKs       []*Field
 	Fields    []*Field
 	FieldsMap map[string]*Field
 
-	Methods   map[string]*Method
+	Methods map[string]*Method
+
 	Relations map[string]*Relation
+}
+
+func (t *Table) Has(flag int8) bool {
+	if t == nil {
+		return false
+	}
+	return t.flags&flag != 0
 }
 
 func (t *Table) checkPKs() error {
 	if len(t.PKs) == 0 {
-		return fmt.Errorf("model %q does not have primary keys", t.ModelName)
+		return fmt.Errorf("model %s does not have primary keys", t.Type.Name())
 	}
 	return nil
 }
@@ -102,6 +111,17 @@ func newTable(typ reflect.Type) *Table {
 	}
 
 	typ = reflect.PtrTo(typ)
+
+	if typ.Implements(afterSelectHookType) {
+		table.flags |= AfterSelectHookFlag
+	}
+	if typ.Implements(beforeCreateHookType) {
+		table.flags |= BeforeCreateHookFlag
+	}
+	if typ.Implements(afterCreateHookType) {
+		table.flags |= AfterCreateHookFlag
+	}
+
 	if table.Methods == nil {
 		table.Methods = make(map[string]*Method)
 	}
@@ -176,6 +196,9 @@ func (t *Table) newField(f reflect.StructField) *Field {
 	if _, ok := pgOpt.Get("array"); ok {
 		appender = types.ArrayAppender(f.Type)
 		scanner = types.ArrayScanner(f.Type)
+	} else if _, ok := pgOpt.Get("hstore"); ok {
+		appender = types.HstoreAppender(f.Type)
+		scanner = types.HstoreScanner(f.Type)
 	} else {
 		appender = types.Appender(f.Type)
 		scanner = types.Scanner(f.Type)
@@ -194,15 +217,10 @@ func (t *Table) newField(f reflect.StructField) *Field {
 		isEmpty: isEmptier(f.Type),
 	}
 
-	if skip {
-		t.FieldsMap[field.SQLName] = &field
-		return nil
-	}
-
 	if _, ok := sqlOpt.Get("null"); ok {
 		field.flags |= NullFlag
 	}
-	if field.SQLName == "id" {
+	if len(t.PKs) == 0 && (field.SQLName == "id" || field.SQLName == "uuid") {
 		field.flags |= PrimaryKeyFlag
 		t.PKs = append(t.PKs, &field)
 	} else if _, ok := sqlOpt.Get("pk"); ok {
@@ -212,61 +230,60 @@ func (t *Table) newField(f reflect.StructField) *Field {
 		field.flags |= ForeignKeyFlag
 	}
 
-	if types.IsSQLScanner(f.Type) {
+	if !skip && types.IsSQLScanner(f.Type) {
 		return &field
 	}
 
 	fieldType := indirectType(f.Type)
+
 	switch fieldType.Kind() {
 	case reflect.Slice:
-		if fieldType.Elem().Kind() == reflect.Struct {
-			joinTable := newTable(fieldType.Elem())
+		elemType := indirectType(fieldType.Elem())
+		if elemType.Kind() != reflect.Struct {
+			break
+		}
 
-			basePrefix := t.Type.Name()
-			if s, _ := pgOpt.Get("fk:"); s != "" {
-				basePrefix = s
+		joinTable := newTable(elemType)
+
+		basePrefix := t.Type.Name()
+		if s, ok := pgOpt.Get("fk:"); ok {
+			basePrefix = s
+		}
+
+		if m2mTable, _ := pgOpt.Get("many2many:"); m2mTable != "" {
+			joinPrefix := joinTable.Type.Name()
+			if s, ok := pgOpt.Get("joinFK:"); ok {
+				joinPrefix = s
 			}
 
-			if m2mTable, _ := pgOpt.Get("many2many:"); m2mTable != "" {
-				joinPrefix := joinTable.Type.Name()
-				if s, _ := pgOpt.Get("joinFK:"); s != "" {
-					joinPrefix = s
-				}
+			t.addRelation(&Relation{
+				Type:         Many2ManyRelation,
+				Field:        &field,
+				JoinTable:    joinTable,
+				M2MTableName: types.AppendField(nil, m2mTable, 1),
+				BasePrefix:   Underscore(basePrefix + "_"),
+				JoinPrefix:   Underscore(joinPrefix + "_"),
+			})
+			return nil
+		}
 
-				t.addRelation(&Relation{
-					Field:        &field,
-					Join:         joinTable,
-					M2MTableName: types.AppendField(nil, m2mTable, 1),
-					BasePrefix:   Underscore(basePrefix + "_"),
-					JoinPrefix:   Underscore(joinPrefix + "_"),
-				})
-				return nil
-			}
+		var polymorphic bool
+		if s, ok := pgOpt.Get("polymorphic:"); ok {
+			polymorphic = true
+			basePrefix = s
+		}
 
-			var polymorphic bool
-			if s, _ := pgOpt.Get("polymorphic:"); s != "" {
-				basePrefix = s
-				polymorphic = true
-			}
-
-			var fks []*Field
-			for _, pk := range t.PKs {
-				fkName := basePrefix + pk.GoName
-				if fk := joinTable.getField(fkName); fk != nil {
-					fks = append(fks, fk)
-				}
-			}
-
-			if len(fks) > 0 {
-				t.addRelation(&Relation{
-					Polymorphic: polymorphic,
-					Field:       &field,
-					FKs:         fks,
-					Join:        joinTable,
-					BasePrefix:  Underscore(basePrefix + "_"),
-				})
-				return nil
-			}
+		fks := foreignKeys(t, joinTable, basePrefix)
+		if len(fks) > 0 {
+			t.addRelation(&Relation{
+				Type:        HasManyRelation,
+				Polymorphic: polymorphic,
+				Field:       &field,
+				FKs:         fks,
+				JoinTable:   joinTable,
+				BasePrefix:  Underscore(basePrefix + "_"),
+			})
+			return nil
 		}
 	case reflect.Struct:
 		joinTable := newTable(fieldType)
@@ -282,26 +299,55 @@ func (t *Table) newField(f reflect.StructField) *Field {
 			t.FieldsMap[ff.SQLName] = ff
 		}
 
-		var fks []*Field
-		for _, pk := range joinTable.PKs {
-			fkName := field.GoName + pk.GoName
-			if fk := t.getField(fkName); fk != nil {
-				fks = append(fks, fk)
-			}
+		if t.detectHasOne(&field, joinTable) ||
+			t.detectBelongsToOne(&field, joinTable) {
+			t.FieldsMap[field.SQLName] = &field
+			return nil
 		}
+	}
 
-		if len(fks) > 0 {
-			t.addRelation(&Relation{
-				One:   true,
-				Field: &field,
-				FKs:   fks,
-				Join:  joinTable,
-			})
-		}
-
+	if skip {
 		t.FieldsMap[field.SQLName] = &field
 		return nil
 	}
-
 	return &field
+}
+
+func foreignKeys(base, join *Table, prefix string) []*Field {
+	var fks []*Field
+	for _, pk := range base.PKs {
+		fkName := prefix + pk.GoName
+		if fk := join.getField(fkName); fk != nil {
+			fks = append(fks, fk)
+		}
+	}
+	return fks
+}
+
+func (t *Table) detectHasOne(field *Field, joinTable *Table) bool {
+	fks := foreignKeys(joinTable, t, field.GoName)
+	if len(fks) > 0 {
+		t.addRelation(&Relation{
+			Type:      HasOneRelation,
+			Field:     field,
+			FKs:       fks,
+			JoinTable: joinTable,
+		})
+		return true
+	}
+	return false
+}
+
+func (t *Table) detectBelongsToOne(field *Field, joinTable *Table) bool {
+	fks := foreignKeys(t, joinTable, t.Type.Name())
+	if len(fks) > 0 {
+		t.addRelation(&Relation{
+			Type:      BelongsToRelation,
+			Field:     field,
+			FKs:       fks,
+			JoinTable: joinTable,
+		})
+		return true
+	}
+	return false
 }

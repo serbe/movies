@@ -16,3 +16,7 @@ func (Discard) AddModel(_ ColumnScanner) error {
 func (Discard) ScanColumn(colIdx int, colName string, b []byte) error {
 	return nil
 }
+
+func (Discard) AfterSelect(DB) error {
+	return nil
+}
