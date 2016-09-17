@@ -19,8 +19,6 @@ type Collection interface {
 
 	// AddModel adds ColumnScanner to the Collection.
 	AddModel(ColumnScanner) error
-
-	AfterSelect(DB) error
 }
 
 type QueryAppender interface {
@@ -33,9 +31,16 @@ type QueryFormatter interface {
 
 // DB is a common interface for pg.DB and pg.Tx types.
 type DB interface {
-	Exec(q interface{}, params ...interface{}) (*types.Result, error)
-	ExecOne(q interface{}, params ...interface{}) (*types.Result, error)
+	Model(model ...interface{}) *Query
+	Select(model interface{}) error
+	Create(model ...interface{}) error
+	Update(model interface{}) error
+	Delete(model interface{}) error
+
+	Exec(query interface{}, params ...interface{}) (*types.Result, error)
+	ExecOne(query interface{}, params ...interface{}) (*types.Result, error)
 	Query(coll, query interface{}, params ...interface{}) (*types.Result, error)
 	QueryOne(model, query interface{}, params ...interface{}) (*types.Result, error)
+
 	QueryFormatter
 }
