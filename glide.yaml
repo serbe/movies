@@ -1,3 +1,0 @@
-package: github.com/serbe/movies
-import:
-- package: gopkg.in/pg.v4
