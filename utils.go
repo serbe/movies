@@ -32,7 +32,7 @@ func (app *application) getConfig() {
 	if err != nil {
 		panic(err)
 	}
-	app.config = c
+	app.cfg = c
 }
 
 func round(v float64, decimals int) float64 {
@@ -44,7 +44,7 @@ func round(v float64, decimals int) float64 {
 }
 
 func (app *application) printLog(startTime time.Time, r *http.Request) {
-	if app.config.Web.Log == true {
+	if app.cfg.Web.Log == true {
 		currentTime := time.Now()
 		log.Printf("[%s] %q %v\n", r.Method, r.URL.String(), currentTime.Sub(startTime))
 	}

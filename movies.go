@@ -1,14 +1,16 @@
 package main
 
 import (
-	"gopkg.in/pg.v4"
+	"database/sql"
 	"net/http"
+
+	_ "github.com/lib/pq"
 )
 
 type application struct {
-	config   config
-	database *pg.DB
-	server *http.Server
+	cfg config
+	db  *sql.DB
+	srv *http.Server
 }
 
 func main() {

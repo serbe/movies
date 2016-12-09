@@ -16,12 +16,12 @@ func (app *application) initServer() {
 	})
 	ServeMux.Handle("/public/", http.StripPrefix("/public/", http.FileServer(http.Dir("./public"))))
 	s := &http.Server{
-		Addr:           ":" + app.config.Web.Port,
+		Addr:           ":" + app.cfg.Web.Port,
 		Handler:        ServeMux,         // handler to invoke, http.DefaultServeMux if nil
 		ReadTimeout:    10 * time.Second, // maximum duration before timing out read of the request
 		WriteTimeout:   10 * time.Second, // maximum duration before timing out write of the response
 		MaxHeaderBytes: 1 << 20,          // maximum size of request headers, 1048576 bytes
 	}
 	s.ListenAndServe()
-	app.server = s
+	app.srv = s
 }

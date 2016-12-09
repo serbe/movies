@@ -3,7 +3,7 @@
 		"user": "Pquser",
 		"password": "Pqpassword",
 		"dbname": "rssdb",
-		"sslmode": false
+		"sslmode": "disable"
 	},
 	"web": {
 		"img_dir": "/public/img/",
