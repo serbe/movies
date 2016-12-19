@@ -13,6 +13,15 @@ type application struct {
 	srv *http.Server
 }
 
+type context struct {
+	Title  string
+	Static string
+	Movies []Movie
+	Genres []string
+	Years  []string
+	Count  int
+}
+
 func main() {
 	app := application{}
 	app.getConfig()
