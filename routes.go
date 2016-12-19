@@ -2,15 +2,15 @@ package main
 
 import (
 	"encoding/json"
+	"io/ioutil"
 	"net/http"
 	"strconv"
-	"io/ioutil"
 	"time"
 )
 
-func (app *application) root(w http.ResponseWriter, r *http.Request)  {
+func (app *application) root(w http.ResponseWriter, r *http.Request) {
 	t := time.Now()
-	data, err := ioutil.ReadFile("./templates/root.html")
+	data, err := ioutil.ReadFile("./templates/base.html")
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

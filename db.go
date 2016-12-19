@@ -20,17 +20,17 @@ type Data struct {
 
 // Movie all values
 type Movie struct {
-	ID          int       `sql:"id,pk"        json:"id"`
+	ID          int64     `sql:"id,pk"        json:"id"`
 	Section     string    `sql:"section"      json:"section"`
 	Name        string    `sql:"name"         json:"name"`
 	EngName     string    `sql:"eng_name"     json:"eng_name"`
 	Year        int       `sql:"year"         json:"year"`
-	Genre       []string  `sql:"genre"        json:"genre"        pg:",array" `
-	Country     []string  `sql:"country"      json:"country"      pg:",array"`
+	Genre       []string  `sql:"genre"        json:"genre"`
+	Country     []string  `sql:"country"      json:"country"`
 	RawCountry  string    `sql:"raw_country"  json:"raw_country"`
-	Director    []string  `sql:"director"     json:"director"     pg:",array"`
-	Producer    []string  `sql:"producer"     json:"producer"     pg:",array"`
-	Actor       []string  `sql:"actor"        json:"actor"        pg:",array"`
+	Director    []string  `sql:"director"     json:"director"`
+	Producer    []string  `sql:"producer"     json:"producer"`
+	Actor       []string  `sql:"actor"        json:"actor"`
 	Description string    `sql:"description"  json:"description"`
 	Age         string    `sql:"age"          json:"age"`
 	ReleaseDate string    `sql:"release_date" json:"release_date"`
@@ -48,8 +48,8 @@ type Movie struct {
 
 // Torrent all values
 type Torrent struct {
-	ID            int       `sql:"id,pk"             json:"id"`
-	MovieID       int       `sql:"movie_id"          json:"movie_id"`
+	ID            int64     `sql:"id,pk"             json:"id"`
+	MovieID       int64     `sql:"movie_id"          json:"movie_id"`
 	DateCreate    string    `sql:"date_create"       json:"date_create"`
 	Href          string    `sql:"href"              json:"href"`
 	Torrent       string    `sql:"torrent"           json:"torrent"`
@@ -72,8 +72,8 @@ type Torrent struct {
 }
 
 type search struct {
-	ID      int `sql:"id,pk"             json:"id"`
-	MovieID int `sql:"movie_id"          json:"movie_id"`
+	ID      int64 `sql:"id,pk"             json:"id"`
+	MovieID int64 `sql:"movie_id"          json:"movie_id"`
 }
 
 func (app *application) initDB() {
@@ -92,10 +92,9 @@ func (app *application) initDB() {
 
 func (app *application) getMovies(limit int, offset int) Data {
 	var (
-		movies   []Movie
-		count    int
-		data     Data
-		searches []search
+		movies []Movie
+		count  int
+		data   Data
 	)
 
 	_ = app.db.QueryRow("SELECT count(*) FROM movies;").Scan(&count)
@@ -112,11 +111,11 @@ func (app *application) getMovies(limit int, offset int) Data {
 	if err != nil {
 		return data
 	}
-	searches, err = scanSearchs(rows)
+	resultMovies, err := scanSearchs(rows)
 	if err != nil {
 		return data
 	}
-	for _, s := range searches {
+	for _, s := range resultMovies {
 		movie, _ := app.getMovieByID(s.MovieID)
 		torrents, err := app.getMovieTorrents(movie.ID)
 		if err == nil && len(torrents) > 0 {
@@ -137,12 +136,12 @@ func (app *application) getMovies(limit int, offset int) Data {
 	return data
 }
 
-func (app *application) getMovieByID(id int) (Movie, error) {
+func (app *application) getMovieByID(id int64) (Movie, error) {
 	row := app.db.QueryRow("Select * from FROM movies WHERE id = $1", id)
 	return scanMovie(row)
 }
 
-func (app *application) getMovieTorrents(id int) ([]Torrent, error) {
+func (app *application) getMovieTorrents(id int64) ([]Torrent, error) {
 	rows, err := app.db.Query("SELECT * FROM torrents WHERE movie_id = $1 ORDER BY seeders DESC", id)
 	if err != nil {
 		return nil, err

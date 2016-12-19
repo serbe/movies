@@ -13,7 +13,7 @@ type config struct {
 		User     string `json:"user"`
 		Password string `json:"password"`
 		Dbname   string `json:"dbname"`
-		Sslmode  bool   `json:"sslmode"`
+		Sslmode  string `json:"sslmode"`
 	} `json:"postgresql"`
 	Web struct {
 		ImgDir string `json:"img_dir"`
