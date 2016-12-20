@@ -68,7 +68,6 @@ func (app *application) initServer() {
 // }
 
 func render(w http.ResponseWriter, cont context, tmpl string) error {
-	log.Println("Pender ", tmpl)
 	tmplList := []string{"templates/base.html",
 		fmt.Sprintf("templates/%s.html", tmpl)}
 	t, err := template.ParseFiles(tmplList...)

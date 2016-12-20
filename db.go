@@ -22,30 +22,30 @@ type Data struct {
 
 // Movie all values
 type Movie struct {
-	ID          int64     `sql:"id,pk"        json:"id"`
-	Section     string    `sql:"section"      json:"section"`
-	Name        string    `sql:"name"         json:"name"`
-	EngName     string    `sql:"eng_name"     json:"eng_name"`
-	Year        int       `sql:"year"         json:"year"`
-	Genre       []string  `sql:"genre"        json:"genre"`
-	Country     []string  `sql:"country"      json:"country"`
-	RawCountry  string    `sql:"raw_country"  json:"raw_country"`
-	Director    []string  `sql:"director"     json:"director"`
-	Producer    []string  `sql:"producer"     json:"producer"`
-	Actor       []string  `sql:"actor"        json:"actor"`
-	Description string    `sql:"description"  json:"description"`
-	Age         string    `sql:"age"          json:"age"`
-	ReleaseDate string    `sql:"release_date" json:"release_date"`
-	RussianDate string    `sql:"russian_date" json:"russian_date"`
-	Duration    string    `sql:"duration"     json:"duration"`
-	Kinopoisk   float64   `sql:"kinopoisk"    json:"kinopoisk"`
-	IMDb        float64   `sql:"imdb"         json:"imdb"`
-	Poster      string    `sql:"poster"       json:"poster"`
-	PosterURL   string    `sql:"poster_url"   json:"poster_url"`
-	CreatedAt   time.Time `sql:"created_at"`
-	UpdatedAt   time.Time `sql:"updated_at"`
-	Torrent     []Torrent `sql:"-"            json:"torrent"`
-	NNM         float64   `sql:"-"            json:"nnm"`
+	ID          int64          `sql:"id,pk"        json:"id"`
+	Section     string         `sql:"section"      json:"section"`
+	Name        string         `sql:"name"         json:"name"`
+	EngName     string         `sql:"eng_name"     json:"eng_name"`
+	Year        int            `sql:"year"         json:"year"`
+	Genre       pq.StringArray `sql:"genre"        json:"genre"`
+	Country     pq.StringArray `sql:"country"      json:"country"`
+	RawCountry  string         `sql:"raw_country"  json:"raw_country"`
+	Director    pq.StringArray `sql:"director"     json:"director"`
+	Producer    pq.StringArray `sql:"producer"     json:"producer"`
+	Actor       pq.StringArray `sql:"actor"        json:"actor"`
+	Description string         `sql:"description"  json:"description"`
+	Age         string         `sql:"age"          json:"age"`
+	ReleaseDate string         `sql:"release_date" json:"release_date"`
+	RussianDate string         `sql:"russian_date" json:"russian_date"`
+	Duration    string         `sql:"duration"     json:"duration"`
+	Kinopoisk   float64        `sql:"kinopoisk"    json:"kinopoisk"`
+	IMDb        float64        `sql:"imdb"         json:"imdb"`
+	Poster      string         `sql:"poster"       json:"poster"`
+	PosterURL   string         `sql:"poster_url"   json:"poster_url"`
+	CreatedAt   pq.NullTime    `sql:"created_at"`
+	UpdatedAt   pq.NullTime    `sql:"updated_at"`
+	Torrent     []Torrent      `sql:"-"            json:"torrent"`
+	NNM         float64        `sql:"-"            json:"nnm"`
 }
 
 // Torrent all values
@@ -102,14 +102,19 @@ func (app *application) getMovies(page int) ([]Movie, int64, error) {
 	// EXPLAIN ANALYZE SELECT * FROM movies t1 JOIN (SELECT id FROM movies ORDER BY id LIMIT 10 OFFSET 150) as t2 ON t2.id = t1.id;
 	rows, err := app.db.Query(`SELECT max(id), movie_id FROM torrents GROUP BY movie_id ORDER BY max(id) desc LIMIT $1 OFFSET $2;`, 50, (page-1)*50)
 	if err != nil {
+		log.Println("Query search ", err)
 		return nil, 0, err
 	}
 	searches, err := scanSearchs(rows)
 	if err != nil {
+		log.Println("scanSearchs ", err)
 		return nil, 0, err
 	}
 	for _, s := range searches {
-		movie, _ := app.getMovieByID(s.MovieID)
+		movie, err := app.getMovieByID(s.MovieID)
+		if err != nil {
+			log.Println("getMovieByID ", s.MovieID, err)
+		}
 		torrents, err := app.getMovieTorrents(movie.ID)
 		if err == nil && len(torrents) > 0 {
 			var i float64

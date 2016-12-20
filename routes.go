@@ -14,11 +14,12 @@ func (app *application) index(w http.ResponseWriter, r *http.Request) {
 		page = 1
 	}
 	movies, count, err := app.getMovies(page)
-
 	if err != nil {
 		log.Println("getAllMovies ", err)
 		return
 	}
+	log.Println(movies, count)
+	log.Println(len(movies))
 	genres := []string{}
 	years := []string{}
 	for _, movie := range movies {
