@@ -1,15 +1,14 @@
 package main
 
 import (
-	"database/sql"
 	"net/http"
 
-	_ "github.com/lib/pq"
+	"gopkg.in/pg.v5"
 )
 
 type application struct {
 	cfg config
-	db  *sql.DB
+	db  *pg.DB
 	srv *http.Server
 }
 
@@ -19,7 +18,7 @@ type context struct {
 	Movies []Movie
 	Genres []string
 	Years  []string
-	Count  int64
+	Count  int
 }
 
 func main() {
