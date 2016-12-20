@@ -52,7 +52,7 @@
                 <div class="addon uk-width-3-10">
                     <div class="year uk-width-1-1">Год: <a href="/search?year={{$movie.Year}}">{{$movie.Year}}</a></div>
                     <div class="genre uk-width-1-1">Жанр: {{range $index, $genre := $movie.Genre}}
-                        <a href="/search?genre={{$genre}}">{{$genre}}</a>, {{end}}
+                        <a href="/search?genre={{$genre}}">{{$genre}}</a>{{if nolast $index $movie.Genre}},{{end}} {{end}}
                     </div>
                     <div class="uk-width-1-1">Продолжительность: {{$movie.Duration}}</div>
                     {{if ne $movie.NNM 0.0}}
@@ -78,7 +78,7 @@
                     <div class="uk-width-1-10">Режиссер:</div>
                     <div class="uk-text-justify uk-width-9-10">
                         {{range $index, $director := $movie.Director}}
-                        <a href="/search?director={{$director}}">{{$director}}</a>,
+                        <a href="/search?director={{$director}}">{{$director}}</a>{{if nolast $index $movie.Director}},{{end}}
                         {{end}}
                     </div>
                 </div>
@@ -86,7 +86,7 @@
                     <div class="uk-width-1-10">Актеры:</div>
                     <div class="uk-text-justify uk-width-9-10">
                         {{range $index, $actor := $movie.Actors}}
-                        <a href="/search?actor={{$actor}}">{{$actor}}</a>, {{end}}
+                        <a href="/search?actor={{$actor}}">{{$actor}}</a>{{if nolast $index $movie.Actors}},{{end}} {{end}}
                     </div>
                 </div>
                 <div class="uk-grid uk-margin-top-remove">

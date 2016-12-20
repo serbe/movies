@@ -28,7 +28,7 @@ func serveFileHandler(w http.ResponseWriter, req *http.Request) {
 func (app *application) initServer() {
 	var h = http.NewServeMux()
 
-	h.HandleFunc("/", app.root)
+	h.HandleFunc("/", app.index)
 
 	// h.HandleFunc("/about", about)
 
@@ -67,8 +67,8 @@ func (app *application) initServer() {
 // 	return err
 // }
 
-// Render - render html templates with context
-func render(w http.ResponseWriter, context context, tmpl string) error {
+func render(w http.ResponseWriter, cont context, tmpl string) error {
+	log.Println("Pender ", tmpl)
 	tmplList := []string{"templates/base.html",
 		fmt.Sprintf("templates/%s.html", tmpl)}
 	t, err := template.ParseFiles(tmplList...)
@@ -76,7 +76,7 @@ func render(w http.ResponseWriter, context context, tmpl string) error {
 		log.Print("template parsing error: ", err)
 		return err
 	}
-	err = t.Execute(w, context)
+	err = t.Execute(w, cont)
 	if err != nil {
 		log.Print("template executing error: ", err)
 	}

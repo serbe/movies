@@ -6,16 +6,18 @@ import (
 	"log"
 	"time"
 
-	_ "github.com/lib/pq"
+	"github.com/lib/pq"
 )
 
 // Data - data to sent JSON
 type Data struct {
-	Offset int     `json:"Offset"`
-	Count  int     `json:"Count"`
-	Limit  int     `json:"Limit"`
-	ImgDir string  `json:"ImgDir"`
-	Movies []Movie `json:"Movies"`
+	Offset int      `json:"Offset"`
+	Count  int      `json:"Count"`
+	Limit  int      `json:"Limit"`
+	ImgDir string   `json:"ImgDir"`
+	Genges []string `json:"Genres"`
+	Years  []int64  `json:"Years"`
+	Movies []Movie  `json:"Movies"`
 }
 
 // Movie all values
@@ -78,9 +80,9 @@ type search struct {
 
 func (app *application) initDB() {
 	options := fmt.Sprintf("user=%s password=%s dbname=%s sslmode=%s",
-		app.cfg.Base.Dbname,
 		app.cfg.Base.User,
 		app.cfg.Base.Password,
+		app.cfg.Base.Dbname,
 		app.cfg.Base.Sslmode,
 	)
 	db, err := sql.Open("postgres", options)
@@ -90,32 +92,23 @@ func (app *application) initDB() {
 	app.db = db
 }
 
-func (app *application) getMovies(limit int, offset int) Data {
+func (app *application) getMovies(page int) ([]Movie, int64, error) {
 	var (
 		movies []Movie
-		count  int
-		data   Data
+		count  int64
 	)
 
 	_ = app.db.QueryRow("SELECT count(*) FROM movies;").Scan(&count)
-	if limit == 0 {
-		limit = count
-	}
-	if offset > count {
-		offset = count
-	}
-	//app.database.Model(&m).Order("id DESC").Offset(offset).Limit(limit).Select()
-	// fast
 	// EXPLAIN ANALYZE SELECT * FROM movies t1 JOIN (SELECT id FROM movies ORDER BY id LIMIT 10 OFFSET 150) as t2 ON t2.id = t1.id;
-	rows, err := app.db.Query(`SELECT max(id), movie_id FROM torrents GROUP BY movie_id ORDER BY max(id) desc LIMIT $1 OFFSET $2;`, limit, offset)
+	rows, err := app.db.Query(`SELECT max(id), movie_id FROM torrents GROUP BY movie_id ORDER BY max(id) desc LIMIT $1 OFFSET $2;`, 50, (page-1)*50)
 	if err != nil {
-		return data
+		return nil, 0, err
 	}
-	resultMovies, err := scanSearchs(rows)
+	searches, err := scanSearchs(rows)
 	if err != nil {
-		return data
+		return nil, 0, err
 	}
-	for _, s := range resultMovies {
+	for _, s := range searches {
 		movie, _ := app.getMovieByID(s.MovieID)
 		torrents, err := app.getMovieTorrents(movie.ID)
 		if err == nil && len(torrents) > 0 {
@@ -128,16 +121,47 @@ func (app *application) getMovies(limit int, offset int) Data {
 			movies = append(movies, movie)
 		}
 	}
-	data.Movies = movies
-	data.Count = count
-	data.Limit = len(movies)
-	data.Offset = offset + data.Limit
-	data.ImgDir = app.cfg.Web.ImgDir
-	return data
+	return movies, count, nil
+}
+
+func (app *application) getAllMovies() ([]Movie, error) {
+	var movies []Movie
+	rows, err := app.db.Query(`SELECT max(id), movie_id FROM torrents GROUP BY movie_id ORDER BY max(id) desc`)
+	if err != nil {
+		DBError := err.(*pq.Error) // for Postgres DB driver
+		fmt.Println("SQL ERROR!")
+		fmt.Printf("%#v\n", DBError)
+		log.Println("Query search ", err)
+		return nil, err
+	}
+	searches, err := scanSearchs(rows)
+	if err != nil {
+		log.Println("scanSearchs ", err)
+		return nil, err
+	}
+	for _, s := range searches {
+		movie, err := app.getMovieByID(s.MovieID)
+		if err != nil {
+			log.Println("getMovieByID ", s.MovieID, err)
+		}
+		torrents, err := app.getMovieTorrents(movie.ID)
+		if err == nil && len(torrents) > 0 {
+			var i float64
+			for _, t := range torrents {
+				i = i + t.NNM
+			}
+			movie.Torrent = torrents
+			movie.NNM = round(i/float64(len(torrents)), 1)
+			movies = append(movies, movie)
+		} else {
+			log.Println("getMovieTorrents ", movie.ID, err)
+		}
+	}
+	return movies, nil
 }
 
 func (app *application) getMovieByID(id int64) (Movie, error) {
-	row := app.db.QueryRow("Select * from FROM movies WHERE id = $1", id)
+	row := app.db.QueryRow("Select * FROM movies WHERE id = $1", id)
 	return scanMovie(row)
 }
 

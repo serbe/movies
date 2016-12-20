@@ -19,11 +19,11 @@ type context struct {
 	Movies []Movie
 	Genres []string
 	Years  []string
-	Count  int
+	Count  int64
 }
 
 func main() {
-	app := application{}
+	app := new(application)
 	app.getConfig()
 	app.initDB()
 	app.initServer()

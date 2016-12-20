@@ -49,3 +49,12 @@ func (app *application) printLog(startTime time.Time, r *http.Request) {
 		log.Printf("[%s] %q %v\n", r.Method, r.URL.String(), currentTime.Sub(startTime))
 	}
 }
+
+func stringInSlice(list []string, s string) bool {
+	for _, b := range list {
+		if b == s {
+			return true
+		}
+	}
+	return false
+}

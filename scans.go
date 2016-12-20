@@ -1,42 +1,10 @@
 package main
 
-import "database/sql"
+import (
+	"database/sql"
 
-func scanData(r *sql.Row) (Data, error) {
-	var s Data
-	if err := r.Scan(
-		&s.Offset,
-		&s.Count,
-		&s.Limit,
-		&s.ImgDir,
-		&s.Movies,
-	); err != nil {
-		return Data{}, err
-	}
-	return s, nil
-}
-
-func scanDatas(rs *sql.Rows) ([]Data, error) {
-	structs := make([]Data, 0, 16)
-	var err error
-	for rs.Next() {
-		var s Data
-		if err = rs.Scan(
-			&s.Offset,
-			&s.Count,
-			&s.Limit,
-			&s.ImgDir,
-			&s.Movies,
-		); err != nil {
-			return nil, err
-		}
-		structs = append(structs, s)
-	}
-	if err = rs.Err(); err != nil {
-		return nil, err
-	}
-	return structs, nil
-}
+	"github.com/lib/pq"
+)
 
 func scanMovie(r *sql.Row) (Movie, error) {
 	var s Movie
@@ -46,12 +14,12 @@ func scanMovie(r *sql.Row) (Movie, error) {
 		&s.Name,
 		&s.EngName,
 		&s.Year,
-		&s.Genre,
-		&s.Country,
+		pq.Array(&s.Genre),
+		pq.Array(&s.Country),
 		&s.RawCountry,
-		&s.Director,
-		&s.Producer,
-		&s.Actor,
+		pq.Array(&s.Director),
+		pq.Array(&s.Producer),
+		pq.Array(&s.Actor),
 		&s.Description,
 		&s.Age,
 		&s.ReleaseDate,
@@ -61,8 +29,8 @@ func scanMovie(r *sql.Row) (Movie, error) {
 		&s.IMDb,
 		&s.Poster,
 		&s.PosterURL,
-		&s.CreatedAt,
-		&s.UpdatedAt,
+		// &s.CreatedAt,
+		// &s.UpdatedAt,
 		// &s.Torrent,
 		// &s.NNM,
 	); err != nil {
