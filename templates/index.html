@@ -85,8 +85,9 @@
                 <div class="uk-grid uk-margin-top-remove">
                     <div class="uk-width-1-10">Актеры:</div>
                     <div class="uk-text-justify uk-width-9-10">
-                        {{range $index, $actor := $movie.Actors}}
-                        <a href="/search?actor={{$actor}}">{{$actor}}</a>, {{end}}
+                        {{range $index, $actor := $movie.Actor}}
+                        <a href="/search?actor={{$actor}}">{{$actor}}</a>,
+                        {{end}}
                     </div>
                 </div>
                 <div class="uk-grid uk-margin-top-remove">
@@ -103,7 +104,7 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                {{range $index, $torrent := $movie.Torrents}}
+                                {{range $index, $torrent := $movie.Torrent}}
                                 <tr>
                                     <td class="uk-table-middle uk-text-center">
                                         <a class="uk-icon-external-link" href="http://nnmclub.to/forum/viewtopic.php?t={{$torrent.Href}}"></a>
