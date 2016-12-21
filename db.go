@@ -71,7 +71,7 @@ type Torrent struct {
 }
 
 type search struct {
-	ID      int64 `sql:"id,pk"             json:"id"`
+	ID      int64 `sql:"max"             json:"id"`
 	MovieID int64 `sql:"movie_id"          json:"movie_id"`
 }
 
