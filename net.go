@@ -29,6 +29,7 @@ func (app *application) initServer() {
 	var h = http.NewServeMux()
 
 	h.HandleFunc("/", app.index)
+	h.HandleFunc("/b/", app.bindex)
 
 	// h.HandleFunc("/about", about)
 
@@ -69,6 +70,21 @@ func (app *application) initServer() {
 
 func render(w http.ResponseWriter, cont context, tmpl string) error {
 	tmplList := []string{"templates/base.html",
+		fmt.Sprintf("templates/%s.html", tmpl)}
+	t, err := template.ParseFiles(tmplList...)
+	if err != nil {
+		log.Print("template parsing error: ", err)
+		return err
+	}
+	err = t.Execute(w, cont)
+	if err != nil {
+		log.Print("template executing error: ", err)
+	}
+	return err
+}
+
+func renderBulma(w http.ResponseWriter, cont context, tmpl string) error {
+	tmplList := []string{"templates/bbase.html",
 		fmt.Sprintf("templates/%s.html", tmpl)}
 	t, err := template.ParseFiles(tmplList...)
 	if err != nil {
