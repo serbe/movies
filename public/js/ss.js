@@ -1,6 +1,15 @@
 'use strict'
 
-function switching (e) {
+function sw(e) {
+  var movie = e.getElementsByClassName('addons')
+  if (movie[0].classList.contains('hide') === true) {
+    movie[0].classList.remove('hide')
+  } else {
+    movie[0].classList.add('hide')
+  }
+}
+
+function switching(e) {
   var movie = e.parentNode
   var desc = movie.getElementsByClassName('desc')
   var addon = movie.getElementsByClassName('addon')
@@ -31,7 +40,7 @@ function switching (e) {
   }
 }
 
-function filter (phrase) {
+function filter(phrase) {
   var movies = document.getElementsByClassName('movie')
   var words = phrase.value.toLowerCase().split(' ')
   var ele
@@ -56,7 +65,7 @@ function filter (phrase) {
   }
 }
 
-function filterColumnGenre (text, i) {
+function filterColumnGenre(text, i) {
   var movies = document.getElementsByClassName('movie')
   var ele
   text = text.toLowerCase()
@@ -81,7 +90,7 @@ function filterColumnGenre (text, i) {
   }
 }
 
-function filterColumnYear (text, i) {
+function filterColumnYear(text, i) {
   var movies = document.getElementsByClassName('movie')
   var ele
   for (var r = 0; r < movies.length; r++) {
@@ -105,7 +114,7 @@ function filterColumnYear (text, i) {
   }
 }
 
-function filterColumnRating (text, i) {
+function filterColumnRating(text, i) {
   var movies = document.getElementsByClassName('movie')
   var ele
   var value = parseFloat(text.replace('&gt;', '').replace('>', ''))
@@ -130,7 +139,7 @@ function filterColumnRating (text, i) {
   }
 }
 
-function changeGenre () {
+function changeGenre() {
   var e = document.getElementById('genre')
   var value = e.options[e.selectedIndex].value
   var text = e.options[e.selectedIndex].text
@@ -141,7 +150,7 @@ function changeGenre () {
   }
 }
 
-function changeYear () {
+function changeYear() {
   var e = document.getElementById('year')
   var value = e.options[e.selectedIndex].value
   var text = e.options[e.selectedIndex].text
@@ -152,7 +161,7 @@ function changeYear () {
   }
 }
 
-function changeRating () {
+function changeRating() {
   var e = document.getElementById('rating')
   var value = e.options[e.selectedIndex].value
   var text = e.options[e.selectedIndex].text
