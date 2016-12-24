@@ -6,7 +6,7 @@
       <a class="nav-item is-tab" href="/">
         <span class="icon is-medium">
           <i class="fa fa-home"></i>
-        </span>&nbsp; Home
+        </span> &nbsp; Home
       </a>
       <div class="nav-item">
         <p class="control is-expanded">
@@ -59,8 +59,8 @@
 <section class="section main">
   <div class="container">
     {{range $movie := .Movies}}
-      <div class="box movie" onclick="sw(this)">
-        <div class="level">
+      <div class="box movie pt10">
+        <div class="level mb10">
           <div class="level-left level-item">
             <p class="title is-5">{{$movie.Name}}{{if ne $movie.EngName ""}} / {{$movie.EngName}}{{end}}</p>
           </div>
@@ -72,106 +72,128 @@
             </figure>
           </div>
           <div class="media-content">
-            <div class="columns">
-              <div class="column is-9">
-                <p class="has-text-centered">
-                  <small>Рейтинг:</small>
+            <div class="tabs">
+              <ul>
+                <li class="is-active" id="t0"><a onclick="sw(this,0)">Описание</a></li>
+                <li id="t1"><a onclick="sw(this,1)">Ссылки</a></li>
+                <li id="t2"><a onclick="sw(this,2)">Информация</a></li>
+              </ul>
+            </div>
+            <div class="dsc">
+              <div class="columns">
+                <div class="column is-9 ptb0">
+                  <p>
+                    {{$movie.Description}}
+                  </p>
+                </div>
+                <div class="column is-3 ptb0">
                   {{if ne $movie.NNM 0.0}}
-                    <small>NNM - <span class="rating">{{$movie.NNM}}</span></small>
+                    <p>NNM: <span class="rating">{{$movie.NNM}}</span></p>
                   {{end}}
                   {{if ne $movie.Kinopoisk 0.0}}
-                    <small>/ Кинопоиск - {{$movie.Kinopoisk}}</small>
+                    <p>Кинопоиск: {{$movie.Kinopoisk}}</p>
                   {{end}}
                   {{if ne $movie.IMDb 0.0}}
-                    <small>/ IMDb - {{$movie.IMDb}}</small>
+                    <p>IMDb: {{$movie.IMDb}}</p>
                   {{end}}
-                </p>
-                <p>
-                  {{$movie.Description}}
-                </p>
-              </div>
-              <div class="column is-3">
-                <div class="year">
-                  Год: <a href="/search?year={{$movie.Year}}">{{$movie.Year}}</a>
+                  <div class="year">
+                    Год: <a href="/search?year={{$movie.Year}}">{{$movie.Year}}</a>
+                  </div>
+                  <div class="genre">
+                    Жанр:
+                      {{range $index, $genre := $movie.Genre}}
+                        <a href="/search?genre={{$genre}}">{{$genre}}</a>
+                      {{end}}
+                  </div>
                 </div>
-                <div class="genre">
-                  Жанр: {{range $index, $genre := $movie.Genre}}
-                          <a href="/search?genre={{$genre}}">{{$genre}}</a>
-                        {{end}}
-                </div>
-                Продолжительность: {{$movie.Duration}}
               </div>
             </div>
-          </div>
-        </div>
-        <div class="addons hide" id="i{{$movie.ID}}">
-          <hr>
-          <div>
-            <div class="columns">
-              <div class="column is-1 is-offset-1 is-paddingless">Страна:</div>
-              <div class="column is-9 is-paddingless">{{$movie.Country}}</div>
+
+            <div class="tor mtm10 hide">
+              <table class="table is-narrow">
+                <thead>
+                  <tr>
+                    <th class="small">Форум</th>
+                    <th>Magnet</th>
+                    <th>Размер</th>
+                    <th>Сиды</th>
+                    <th>Пиры</th>
+                    <th>Перевод</th>
+                    <th>Дата</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {{range $index, $torrent := $movie.Torrent}}
+                    <tr>
+                      <td>
+                        <span class="icon">
+                          <a href="http://nnmclub.to/forum/viewtopic.php?t={{$torrent.Href}}">
+                            <i class="fa fa-external-link"></i>
+                          </a>
+                        </span>
+                      </td>
+                      <td>
+                        <span class="icon">
+                          <a href="magnet:?xt=urn:btih:{{$torrent.Magnet}}">
+                            <i class="fa fa-magnet"></i>
+                          </a>
+                        </span>
+                      </td>
+                      <td>
+                        {{$torrent.Size}} Мб
+                      </td>
+                      <td>
+                        <a href="#">
+                          <i class="fa fa-long-arrow-up"></i>
+                        </a> {{$torrent.Seeders}}
+                      </td>
+                      <td>
+                        <a href="#">
+                          <i class="fa fa-long-arrow-down"></i>
+                        </a> {{$torrent.Leechers}}
+                      </td>
+                      <td>
+                        {{$torrent.Translation}}
+                      </td>
+                      <td>
+                        {{$torrent.DateCreate}}
+                      </td>
+                    </tr>
+                  {{end}}
+                </tbody>
+              </table>
             </div>
-            <div class="columns">
-              <div class="column is-1 is-offset-1 is-paddingless">Режиссер:</div>
-              <div class="column is-9 is-paddingless">
-                {{range $index, $director := $movie.Director}}
-                  <a href="/search?director={{$director}}">{{$director}}</a>
-                {{end}}
-              </div>
-            </div>
-            <div class="columns">
-              <div class="column is-1 is-offset-1 is-paddingless">Актеры:</div>
-              <div class="column is-9 is-paddingless">
-                {{range $index, $actor := $movie.Actor}}
-                  <a href="/search?actor={{$actor}}">{{$actor}}</a>
-                {{end}}
-              </div>
-            </div>
-            <hr class="is-marginless">
-            <div class="columns mt5">
-              <div class="column is-1 is-offset-1 has-text-centered">Форум</div>
-              <div class="column is-1 has-text-centered">Magnet</div>
-              <div class="column is-1 has-text-centered">Размер</div>
-              <div class="column is-1 has-text-centered">Сиды</div>
-              <div class="column is-1 has-text-centered">Пиры</div>
-              <div class="column is-4 has-text-centered">Перевод</div>
-              <div class="column is-1 has-text-centered">Добавлен</div>
-            </div>
-            <!-- <hr class="is-paddingless"> -->
-            {{range $index, $torrent := $movie.Torrent}}
+
+            <div class="inf hide">
               <div class="columns">
-                <div class="column is-1 is-offset-1 has-text-centered is-paddingless">
-                  <span class="icon">
-                    <a href="http://nnmclub.to/forum/viewtopic.php?t={{$torrent.Href}}">
-                      <i class="fa fa-external-link"></i>
-                    </a>
-                  </span>
-                </div>
-                <div class="column is-1 has-text-centered is-paddingless">
-                  <span class="icon">
-                    <a href="magnet:?xt=urn:btih:{{$torrent.Magnet}}">
-                      <i class="fa fa-magnet"></i>
-                    </a>
-                  </span>
-                </div>
-                <div class="column is-1 has-text-centered is-paddingless">
-                  {{$torrent.Size}} Мб
-                </div>
-                <div class="column is-1 has-text-centered is-paddingless">
-                  <a href="#">
-                    <i class="fa fa-long-arrow-up"></i>
-                  </a> {{$torrent.Seeders}}
-                </div>
-                <div class="column is-1 has-text-centered is-paddingless">
-                  <a href="#">
-                    <i class="fa fa-long-arrow-down"></i>
-                  </a> {{$torrent.Leechers}}
-                </div>
-                <div class="column is-4 is-paddingless">
-                  {{$torrent.Translation}}
+                <div class="column is-2 ptb0">Страна:</div>
+                <div class="column is-9 ptb0">
+                  {{range $index, $country := $movie.Country}}
+                    <a href="/search?country={{$country}}">{{$country}}</a>
+                  {{end}}
                 </div>
               </div>
-            {{end}}
+              <div class="columns">
+                <div class="column is-2 ptb0">Режиссер:</div>
+                <div class="column is-9 ptb0">
+                  {{range $index, $director := $movie.Director}}
+                    <a href="/search?director={{$director}}">{{$director}}</a>
+                  {{end}}
+                </div>
+              </div>
+              <div class="columns">
+                <div class="column is-2 ptb0">Актеры:</div>
+                <div class="column is-9 ptb0">
+                  {{range $index, $actor := $movie.Actor}}
+                    <a href="/search?actor={{$actor}}">{{$actor}}</a>
+                  {{end}}
+                </div>
+              </div>
+              <div class="columns">
+                <div class="column is-2 ptb0">Время:</div>
+                <div class="column is-9 ptb0">{{$movie.Duration}}</div>
+              </div>
+            </div>
           </div>
         </div>
       </div>

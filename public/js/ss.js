@@ -1,11 +1,36 @@
 'use strict'
 
-function sw(e) {
-  var movie = e.getElementsByClassName('addons')
-  if (movie[0].classList.contains('hide') === true) {
-    movie[0].classList.remove('hide')
-  } else {
-    movie[0].classList.add('hide')
+function sw(e, i) {
+  var movie = e.parentNode.parentNode.parentNode.parentNode
+  var dsc = movie.getElementsByClassName('dsc')[0]
+  var tor = movie.getElementsByClassName('tor')[0]
+  var inf = movie.getElementsByClassName('inf')[0]
+  var t0 = document.getElementById('t0')
+  var t1 = document.getElementById('t1')
+  var t2 = document.getElementById('t2')
+  if (i === 0 && dsc.classList.contains('hide') === true) {
+    dsc.classList.remove('hide')
+    t0.classList.add('is-active')
+    tor.classList.add('hide')
+    t1.classList.remove('is-active')
+    inf.classList.add('hide')
+    t2.classList.remove('is-active')
+  }
+  if (i === 1 && tor.classList.contains('hide') === true) {
+    tor.classList.remove('hide')
+    t1.classList.add('is-active')
+    dsc.classList.add('hide')
+    t0.classList.remove('is-active')
+    inf.classList.add('hide')
+    t2.classList.remove('is-active')
+  }
+  if (i === 2 && inf.classList.contains('hide') === true) {
+    inf.classList.remove('hide')
+    t2.classList.add('is-active')
+    tor.classList.add('hide')
+    t1.classList.remove('is-active')
+    dsc.classList.add('hide')
+    t0.classList.remove('is-active')
   }
 }
 
