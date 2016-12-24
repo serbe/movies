@@ -1,36 +1,3 @@
-/*img {
-    float: left;
-    width: 60px;
-    height: 80px;
-    padding-top: 0px;
-    padding-right: 10px;
-}
-
-.desc {
-    height: 90px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.addon {
-    height: 90px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.movie-divider {
-	border-top-width: 2px;
-    border-color: #505050;
-}
-
-.pointer {
-	cursor: pointer;
-}
-
-.shadow {
-    box-shadow: 5px 5px 5px black;
-}*/
-
 .fullwidth {
   width: 100% !important;
 }
@@ -49,9 +16,30 @@ input.input {
 }
 
 .mt5 {
-  margin-top: 5px;
+  margin-top: 5px !important;
 }
 
 .mt10 {
-  margin-top: 10px;
+  margin-top: 10px !important;
+}
+
+.mtm10 {
+   margin-top: -10px !important;
+}
+
+.mb10 {
+  margin-bottom: 10px !important;
+}
+
+.pt10 {
+  padding-top: 10px !important;
+}
+
+.ptb0 {
+  padding-bottom: 0px !important;
+  padding-top: 0px !important;
+}
+
+.tor .table.is-narrow td, .tor .table.is-narrow th {
+  padding: 2px 5px !important;
 }
