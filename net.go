@@ -29,7 +29,8 @@ func (app *application) initServer() {
 	var h = http.NewServeMux()
 
 	h.HandleFunc("/", app.index)
-	h.HandleFunc("/b/", app.bindex)
+	h.HandleFunc("/search", app.search)
+	// h.HandleFunc("/b/", app.bindex)
 
 	// h.HandleFunc("/about", about)
 

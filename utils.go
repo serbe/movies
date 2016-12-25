@@ -58,3 +58,10 @@ func stringInSlice(list []string, s string) bool {
 	}
 	return false
 }
+
+func qs(s int) string {
+	if s > 0 {
+		return " AND"
+	}
+	return " WHERE"
+}

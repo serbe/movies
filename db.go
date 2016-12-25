@@ -2,6 +2,9 @@ package main
 
 import (
 	"log"
+	"strconv"
+
+	"fmt"
 
 	pg "gopkg.in/pg.v5"
 )
@@ -130,4 +133,69 @@ func (app *application) getMovieTorrents(id int64) ([]Torrent, error) {
 	var torrents []Torrent
 	_, err := app.db.Query(&torrents, "SELECT * FROM torrents WHERE movie_id = ? ORDER BY seeders DESC", id)
 	return torrents, err
+}
+
+func (app *application) searchMovies(page, year int, actor, genre, director string) ([]Movie, int, error) {
+	var (
+		movies   []Movie
+		searches []search
+		ids      []int64
+		queryStr string
+		s        int
+	)
+
+	count, err := app.db.Model(&Movie{}).Count()
+	if err != nil {
+		return nil, 0, err
+	}
+
+	moviesStr := "SELECT id FROM movies"
+	if year > 1800 {
+		s++
+		queryStr = " WHERE year = " + strconv.Itoa(year)
+	}
+	if actor != "" {
+		queryStr = queryStr + qs(s)
+		s++
+		queryStr = queryStr + fmt.Sprintf(" '%s' = ANY (actor)", actor)
+	}
+	if genre != "" {
+		queryStr = queryStr + qs(s)
+		s++
+		queryStr = queryStr + fmt.Sprintf(" '%s' = ANY (genre)", genre)
+	}
+	if director != "" {
+		queryStr = queryStr + qs(s)
+		queryStr = queryStr + fmt.Sprintf(" '%s' = ANY (director)", director)
+	}
+	moviesStr = moviesStr + queryStr + ";"
+
+	_, err = app.db.Query(&ids, moviesStr)
+	if err != nil {
+		log.Println("Query ids ", err)
+		return nil, 0, err
+	}
+
+	_, err = app.db.Query(&searches, `SELECT max(t.id), t.movie_id FROM torrents AS t WHERE movie_id IN (?) GROUP BY movie_id ORDER BY max(id) desc LIMIT ? OFFSET ?;`, pg.In(ids), 50, (page-1)*50)
+	if err != nil {
+		log.Println("Query searches ", err)
+		return nil, 0, err
+	}
+	for _, s := range searches {
+		movie, err := app.getMovieByID(s.MovieID)
+		if err != nil {
+			log.Println("getMovieByID ", s.MovieID, err)
+		}
+		torrents, err := app.getMovieTorrents(movie.ID)
+		if err == nil && len(torrents) > 0 {
+			var i float64
+			for _, t := range torrents {
+				i = i + t.NNM
+			}
+			movie.Torrent = torrents
+			movie.NNM = round(i/float64(len(torrents)), 1)
+			movies = append(movies, movie)
+		}
+	}
+	return movies, count, nil
 }
