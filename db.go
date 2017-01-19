@@ -1,10 +1,9 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"strconv"
-
-	"fmt"
 
 	pg "gopkg.in/pg.v5"
 )
@@ -99,7 +98,7 @@ func (app *application) getMovies(page int) ([]Movie, int, error) {
 	if err != nil {
 		return nil, 0, err
 	}
-	_, err = app.db.Query(&searches, `SELECT max(t.id), t.movie_id FROM torrents AS t GROUP BY movie_id ORDER BY max(id) desc LIMIT ? OFFSET ?;`, 50, (page-1)*50)
+	_, err = app.db.Query(&searches, `SELECT max(t.id), t.movie_id FROM torrents AS t GROUP BY movie_id ORDER BY max(id) desc LIMIT ? OFFSET ?;`, 100, (page-1)*100)
 	if err != nil {
 		log.Println("Query search ", err)
 		return nil, 0, err
