@@ -175,7 +175,7 @@ func (app *application) searchMovies(page, year int, actor, genre, director stri
 		return nil, 0, err
 	}
 
-	_, err = app.db.Query(&searches, `SELECT max(t.id), t.movie_id FROM torrents AS t WHERE movie_id IN (?) GROUP BY movie_id ORDER BY max(id) desc LIMIT ? OFFSET ?;`, pg.In(ids), 50, (page-1)*50)
+	_, err = app.db.Query(&searches, `SELECT max(t.id), t.movie_id FROM torrents AS t WHERE movie_id IN (?) GROUP BY movie_id ORDER BY max(id) desc LIMIT ? OFFSET ?;`, pg.In(ids), 100, (page-1)*100)
 	if err != nil {
 		log.Println("Query searches ", err)
 		return nil, 0, err
