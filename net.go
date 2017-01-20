@@ -84,17 +84,17 @@ func render(w http.ResponseWriter, cont context, tmpl string) error {
 	return err
 }
 
-func renderBulma(w http.ResponseWriter, cont context, tmpl string) error {
-	tmplList := []string{"templates/bbase.html",
-		fmt.Sprintf("templates/%s.html", tmpl)}
-	t, err := template.ParseFiles(tmplList...)
-	if err != nil {
-		log.Print("template parsing error: ", err)
-		return err
-	}
-	err = t.Execute(w, cont)
-	if err != nil {
-		log.Print("template executing error: ", err)
-	}
-	return err
-}
+// func renderBulma(w http.ResponseWriter, cont context, tmpl string) error {
+// 	tmplList := []string{"templates/bbase.html",
+// 		fmt.Sprintf("templates/%s.html", tmpl)}
+// 	t, err := template.ParseFiles(tmplList...)
+// 	if err != nil {
+// 		log.Print("template parsing error: ", err)
+// 		return err
+// 	}
+// 	err = t.Execute(w, cont)
+// 	if err != nil {
+// 		log.Print("template executing error: ", err)
+// 	}
+// 	return err
+// }

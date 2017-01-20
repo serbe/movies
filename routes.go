@@ -38,36 +38,36 @@ func (app *application) index(w http.ResponseWriter, r *http.Request) {
 	render(w, cont, "index")
 }
 
-func (app *application) bindex(w http.ResponseWriter, r *http.Request) {
-	query := r.URL.Query()
-	page, _ := strconv.Atoi(query.Get("page"))
-	if page == 0 {
-		page = 1
-	}
-	movies, count, err := app.getMovies(page)
-	if err != nil {
-		log.Println("getAllMovies ", err)
-		return
-	}
-	genres := []string{}
-	years := []string{}
-	for _, movie := range movies {
-		year := strconv.Itoa(movie.Year)
-		if stringInSlice(years, year) == false {
-			years = append(years, year)
-		}
-		filmGenres := movie.Genre
-		for _, genre := range filmGenres {
-			if stringInSlice(genres, genre) == false {
-				genres = append(genres, genre)
-			}
-		}
-	}
-	sort.Strings(genres)
-	sort.Strings(years)
-	cont := context{Title: "NNM-club RSS", Movies: movies, Genres: genres, Years: years, Count: count}
-	renderBulma(w, cont, "bindex")
-}
+// func (app *application) bindex(w http.ResponseWriter, r *http.Request) {
+// 	query := r.URL.Query()
+// 	page, _ := strconv.Atoi(query.Get("page"))
+// 	if page == 0 {
+// 		page = 1
+// 	}
+// 	movies, count, err := app.getMovies(page)
+// 	if err != nil {
+// 		log.Println("getAllMovies ", err)
+// 		return
+// 	}
+// 	genres := []string{}
+// 	years := []string{}
+// 	for _, movie := range movies {
+// 		year := strconv.Itoa(movie.Year)
+// 		if stringInSlice(years, year) == false {
+// 			years = append(years, year)
+// 		}
+// 		filmGenres := movie.Genre
+// 		for _, genre := range filmGenres {
+// 			if stringInSlice(genres, genre) == false {
+// 				genres = append(genres, genre)
+// 			}
+// 		}
+// 	}
+// 	sort.Strings(genres)
+// 	sort.Strings(years)
+// 	cont := context{Title: "NNM-club RSS", Movies: movies, Genres: genres, Years: years, Count: count}
+// 	renderBulma(w, cont, "bindex")
+// }
 
 func (app *application) search(w http.ResponseWriter, req *http.Request) {
 	query := req.URL.Query()
