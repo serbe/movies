@@ -3,7 +3,7 @@ package main
 import (
 	"net/http"
 
-	"gopkg.in/pg.v5"
+	"github.com/go-pg/pg"
 )
 
 type application struct {

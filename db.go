@@ -5,7 +5,7 @@ import (
 	"log"
 	"strconv"
 
-	pg "gopkg.in/pg.v5"
+	"github.com/go-pg/pg"
 )
 
 // Data - data to sent JSON
