@@ -1,15 +1,13 @@
 package main
 
 import (
-	"net/http"
-
 	"github.com/go-pg/pg"
 )
 
 type application struct {
 	cfg config
 	db  *pg.DB
-	srv *http.Server
+	// srv *http.Server
 }
 
 type context struct {

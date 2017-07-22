@@ -9,15 +9,15 @@ import (
 )
 
 // Data - data to sent JSON
-type Data struct {
-	Offset int      `json:"Offset"`
-	Count  int      `json:"Count"`
-	Limit  int      `json:"Limit"`
-	ImgDir string   `json:"ImgDir"`
-	Genges []string `json:"Genres"`
-	Years  []int64  `json:"Years"`
-	Movies []Movie  `json:"Movies"`
-}
+// type Data struct {
+// 	Offset int      `json:"Offset"`
+// 	Count  int      `json:"Count"`
+// 	Limit  int      `json:"Limit"`
+// 	ImgDir string   `json:"ImgDir"`
+// 	Genges []string `json:"Genres"`
+// 	Years  []int64  `json:"Years"`
+// 	Movies []Movie  `json:"Movies"`
+// }
 
 // Movie all values
 type Movie struct {

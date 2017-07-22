@@ -22,12 +22,12 @@ func (app *application) index(w http.ResponseWriter, r *http.Request) {
 	years := []string{}
 	for _, movie := range movies {
 		year := strconv.Itoa(movie.Year)
-		if stringInSlice(years, year) == false {
+		if !stringInSlice(years, year) {
 			years = append(years, year)
 		}
 		filmGenres := movie.Genre
 		for _, genre := range filmGenres {
-			if stringInSlice(genres, genre) == false {
+			if !stringInSlice(genres, genre) {
 				genres = append(genres, genre)
 			}
 		}
@@ -35,7 +35,7 @@ func (app *application) index(w http.ResponseWriter, r *http.Request) {
 	sort.Strings(genres)
 	sort.Strings(years)
 	cont := context{Title: "NNM-club RSS", Movies: movies, Genres: genres, Years: years, Count: count}
-	render(w, cont, "index")
+	_ = render(w, cont, "index")
 }
 
 // func (app *application) bindex(w http.ResponseWriter, r *http.Request) {
@@ -88,12 +88,12 @@ func (app *application) search(w http.ResponseWriter, req *http.Request) {
 	years := []string{}
 	for _, movie := range movies {
 		year := strconv.Itoa(movie.Year)
-		if stringInSlice(years, year) == false {
+		if !stringInSlice(years, year) {
 			years = append(years, year)
 		}
 		filmGenres := movie.Genre
 		for _, genre := range filmGenres {
-			if stringInSlice(genres, genre) == false {
+			if !stringInSlice(genres, genre) {
 				genres = append(genres, genre)
 			}
 		}
@@ -101,7 +101,7 @@ func (app *application) search(w http.ResponseWriter, req *http.Request) {
 	sort.Strings(genres)
 	sort.Strings(years)
 	cont := context{Title: "NNM-club RSS", Movies: movies, Genres: genres, Years: years, Count: count}
-	render(w, cont, "index")
+	_ = render(w, cont, "index")
 }
 
 // func (app *application) getOneMovieJSON(w http.ResponseWriter, r *http.Request) {

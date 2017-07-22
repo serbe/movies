@@ -44,7 +44,7 @@ func round(v float64, decimals int) float64 {
 }
 
 func (app *application) printLog(startTime time.Time, r *http.Request) {
-	if app.cfg.Web.Log == true {
+	if app.cfg.Web.Log {
 		currentTime := time.Now()
 		log.Printf("[%s] %q %v\n", r.Method, r.URL.String(), currentTime.Sub(startTime))
 	}
